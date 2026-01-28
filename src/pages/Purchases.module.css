@@ -156,9 +156,30 @@
   color: var(--warning);
 }
 
+.status.pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+}
+
+.status.approved {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.status.rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+}
+
 .status.disputed {
   background: rgba(239, 68, 68, 0.1);
   color: var(--error);
+}
+
+.orderRef {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+  font-family: monospace;
 }
 
 .actions {
@@ -200,6 +221,25 @@
 .reportBtn:hover {
   background: var(--bg-hover);
   color: var(--error);
+}
+
+.viewBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.viewBtn:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
 }
 
 /* Modal */
@@ -277,5 +317,23 @@
 }
 
 .emptyState p {
+  margin-bottom: var(--space-lg);
+}
+
+/* Proof Image Modal */
+.proofModal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+.proofImage {
+  max-width: 100%;
+  max-height: 60vh;
+  border-radius: var(--radius-md);
   margin-bottom: var(--space-lg);
 }

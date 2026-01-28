@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Music, Download, Clock, CheckCircle, AlertTriangle, Loader2, ShoppingBag, Flag } from 'lucide-react'
-import { collection, query, where, getDocs, doc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore'
+import { Music, Download, Clock, CheckCircle, AlertTriangle, Loader2, ShoppingBag, Flag, XCircle, Eye, Send, Shield } from 'lucide-react'
+import { collection, query, where, getDocs, doc, updateDoc, addDoc, serverTimestamp, orderBy, arrayUnion } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
@@ -19,6 +19,15 @@ const getFileExtension = (licenseType) => {
   return 'mp3'
 }
 
+const ORDER_STATUS = {
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+  DELIVERED: 'delivered',
+  DISPUTED: 'disputed',
+  ADMIN_DELIVERED: 'admin_delivered'
+}
+
 export default function Purchases() {
   const { t } = useLanguage()
   const { user } = useAuth()
@@ -27,6 +36,8 @@ export default function Purchases() {
   const [showDispute, setShowDispute] = useState(null)
   const [disputeReason, setDisputeReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [expandedOrder, setExpandedOrder] = useState(null)
+  const [showProof, setShowProof] = useState(null)
 
   useEffect(() => {
     const loadPurchases = async () => {
@@ -36,22 +47,19 @@ export default function Purchases() {
       }
 
       try {
-        const purchasesQuery = query(
-          collection(db, 'purchases'),
-          where('buyerId', '==', user.id)
+        // Load from orders collection where user is the buyer
+        const ordersQuery = query(
+          collection(db, 'orders'),
+          where('buyerId', '==', user.id),
+          orderBy('createdAt', 'desc')
         )
-        const snapshot = await getDocs(purchasesQuery)
-        const purchasesData = snapshot.docs.map(doc => ({
+        const snapshot = await getDocs(ordersQuery)
+        const ordersData = snapshot.docs.map(doc => ({
           id: doc.id,
-          ...doc.data()
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate?.() || new Date()
         }))
-        // Sort by createdAt
-        purchasesData.sort((a, b) => {
-          const aTime = a.createdAt?.toMillis?.() || 0
-          const bTime = b.createdAt?.toMillis?.() || 0
-          return bTime - aTime
-        })
-        setPurchases(purchasesData)
+        setPurchases(ordersData)
       } catch (err) {
         console.error('Error loading purchases:', err)
       }
@@ -61,36 +69,46 @@ export default function Purchases() {
     loadPurchases()
   }, [user?.id])
 
-  const formatDate = (timestamp) => {
-    if (!timestamp?.toDate) return ''
-    return timestamp.toDate().toLocaleDateString()
+  const formatDate = (date) => {
+    if (!date) return ''
+    if (date.toDate) return date.toDate().toLocaleDateString()
+    if (date instanceof Date) return date.toLocaleDateString()
+    return ''
   }
 
-  const handleDispute = async (purchaseId) => {
+  const handleDispute = async (orderId) => {
     if (!disputeReason.trim()) return
 
     setSubmitting(true)
     try {
-      // Find the purchase
-      const purchase = purchases.find(p => p.id === purchaseId)
+      // Find the order
+      const order = purchases.find(p => p.id === orderId)
       
-      // Update purchase status
-      await updateDoc(doc(db, 'purchases', purchaseId), {
-        status: 'disputed',
+      // Update order status
+      await updateDoc(doc(db, 'orders', orderId), {
+        status: ORDER_STATUS.DISPUTED,
         disputeReason: disputeReason,
-        disputedAt: serverTimestamp()
+        disputedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        actionLog: arrayUnion({
+          action: 'disputed',
+          by: user.name || user.email,
+          byId: user.id,
+          at: new Date().toISOString(),
+          note: `Dispute opened: ${disputeReason}`
+        })
       })
 
       // Create dispute record
       const disputeData = {
-        purchaseId: purchaseId,
-        beatId: purchase?.beatId,
-        beatTitle: purchase?.beatTitle,
-        amount: purchase?.price,
+        orderId: orderId,
+        beatId: order?.beatId,
+        beatTitle: order?.beatTitle,
+        amount: order?.price,
         buyerId: user.id,
         buyerName: user.name,
-        sellerId: purchase?.sellerId,
-        sellerName: purchase?.sellerName,
+        sellerId: order?.sellerId,
+        sellerName: order?.sellerName,
         reason: disputeReason,
         description: disputeReason,
         status: 'open',
@@ -104,7 +122,7 @@ export default function Purchases() {
 
       // Update local state
       setPurchases(prev => prev.map(p => 
-        p.id === purchaseId ? { ...p, status: 'disputed' } : p
+        p.id === orderId ? { ...p, status: ORDER_STATUS.DISPUTED } : p
       ))
       setShowDispute(null)
       setDisputeReason('')
@@ -116,29 +134,49 @@ export default function Purchases() {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'completed':
+      case ORDER_STATUS.PENDING:
+        return (
+          <span className={`${styles.status} ${styles.pending}`}>
+            <Clock size={14} />
+            {t('pending') || 'Ожидание'}
+          </span>
+        )
+      case ORDER_STATUS.APPROVED:
+        return (
+          <span className={`${styles.status} ${styles.approved}`}>
+            <CheckCircle size={14} />
+            {t('approved') || 'Подтверждено'}
+          </span>
+        )
+      case ORDER_STATUS.DELIVERED:
+      case ORDER_STATUS.ADMIN_DELIVERED:
         return (
           <span className={`${styles.status} ${styles.completed}`}>
             <CheckCircle size={14} />
-            {t('completed')}
+            {t('delivered') || 'Доставлено'}
           </span>
         )
-      case 'hold':
+      case ORDER_STATUS.REJECTED:
         return (
-          <span className={`${styles.status} ${styles.hold}`}>
-            <Clock size={14} />
-            {t('onHold')}
+          <span className={`${styles.status} ${styles.rejected}`}>
+            <XCircle size={14} />
+            {t('rejected') || 'Отклонено'}
           </span>
         )
-      case 'disputed':
+      case ORDER_STATUS.DISPUTED:
         return (
           <span className={`${styles.status} ${styles.disputed}`}>
             <AlertTriangle size={14} />
-            {t('disputed')}
+            {t('disputed') || 'Спор'}
           </span>
         )
       default:
-        return null
+        return (
+          <span className={`${styles.status} ${styles.pending}`}>
+            <Clock size={14} />
+            {status || t('pending')}
+          </span>
+        )
     }
   }
 
@@ -161,50 +199,72 @@ export default function Purchases() {
 
         {purchases.length > 0 ? (
           <div className={styles.purchasesList}>
-            {purchases.map(purchase => (
-              <div key={purchase.id} className={styles.purchaseCard}>
+            {purchases.map(order => (
+              <div key={order.id} className={styles.purchaseCard}>
                 <div className={styles.cover}>
-                  {purchase.coverUrl ? (
-                    <img src={purchase.coverUrl} alt={purchase.beatTitle} />
+                  {order.beatCover ? (
+                    <img src={order.beatCover} alt={order.beatTitle} />
                   ) : (
                     <Music size={24} />
                   )}
                 </div>
 
                 <div className={styles.info}>
-                  <Link to={`/beat/${purchase.beatId}`} className={styles.beatTitle}>
-                    {purchase.beatTitle}
+                  <Link to={`/beat/${order.beatId}`} className={styles.beatTitle}>
+                    {order.beatTitle}
                   </Link>
                   <span className={styles.seller}>
-                    {t('by')} {purchase.sellerName}
+                    {t('by')} {order.sellerName}
                   </span>
+                  <span className={styles.orderRef}>#{order.orderRef}</span>
                 </div>
 
                 <div className={styles.license}>
-                  <span className={styles.licenseType}>{purchase.licenseType}</span>
+                  <span className={styles.licenseType}>{order.licenseType}</span>
                 </div>
 
                 <div className={styles.meta}>
-                  <span className={styles.price}>${purchase.price.toFixed(2)}</span>
-                  <span className={styles.date}>{formatDate(purchase.createdAt)}</span>
+                  <span className={styles.price}>${order.price?.toFixed(2)}</span>
+                  <span className={styles.date}>{formatDate(order.createdAt)}</span>
                 </div>
 
                 <div className={styles.statusCol}>
-                  {getStatusBadge(purchase.status)}
+                  {getStatusBadge(order.status)}
                 </div>
 
                 <div className={styles.actions}>
-                  <a 
-                    href={getDownloadUrl(purchase.beatUrl, `${purchase.beatTitle}.${getFileExtension(purchase.licenseType)}`)}
-                    className={styles.downloadBtn}
-                  >
-                    <Download size={18} />
-                  </a>
-                  {purchase.status !== 'disputed' && (
+                  {/* View proof button */}
+                  {order.paymentProof && (
+                    <button 
+                      className={styles.viewBtn}
+                      onClick={() => setShowProof(order.paymentProof)}
+                      title={t('viewProof') || 'Просмотр чека'}
+                    >
+                      <Eye size={18} />
+                    </button>
+                  )}
+                  
+                  {/* Download available only for delivered orders */}
+                  {(order.status === ORDER_STATUS.DELIVERED || order.status === ORDER_STATUS.ADMIN_DELIVERED) && order.deliveryUrl && (
+                    <a 
+                      href={order.deliveryUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.downloadBtn}
+                      title={t('download')}
+                    >
+                      <Download size={18} />
+                    </a>
+                  )}
+                  
+                  {/* Dispute button - not for already disputed or delivered */}
+                  {order.status !== ORDER_STATUS.DISPUTED && 
+                   order.status !== ORDER_STATUS.DELIVERED && 
+                   order.status !== ORDER_STATUS.ADMIN_DELIVERED && (
                     <button 
                       className={styles.reportBtn}
-                      onClick={() => setShowDispute(purchase.id)}
-                      title={t('reportProblem')}
+                      onClick={() => setShowDispute(order.id)}
+                      title={t('reportProblem') || 'Открыть спор'}
                     >
                       <Flag size={16} />
                     </button>
@@ -257,6 +317,22 @@ export default function Purchases() {
                   {submitting ? <Loader2 size={16} className={styles.spinner} /> : t('submitDispute')}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Proof Image Modal */}
+        {showProof && (
+          <div className={styles.modalOverlay} onClick={() => setShowProof(null)}>
+            <div className={styles.proofModal} onClick={e => e.stopPropagation()}>
+              <h3 className={styles.modalTitle}>{t('paymentProof') || 'Чек оплаты'}</h3>
+              <img src={showProof} alt="Payment proof" className={styles.proofImage} />
+              <button 
+                className="btn btn-secondary"
+                onClick={() => setShowProof(null)}
+              >
+                {t('close') || 'Закрыть'}
+              </button>
             </div>
           </div>
         )}
