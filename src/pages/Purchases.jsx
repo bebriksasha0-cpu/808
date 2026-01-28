@@ -245,13 +245,11 @@ export default function Purchases() {
                   )}
                   
                   {/* Download available only for delivered orders */}
-                  {(order.status === ORDER_STATUS.DELIVERED || order.status === ORDER_STATUS.ADMIN_DELIVERED) && order.deliveryUrl && (
+                  {(order.status === ORDER_STATUS.DELIVERED || order.status === ORDER_STATUS.ADMIN_DELIVERED) && order.beatFileUrl && (
                     <a 
-                      href={order.deliveryUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={getDownloadUrl(order.beatFileUrl, `${order.beatTitle}.${getFileExtension(order.licenseKey || order.licenseType)}`)}
                       className={styles.downloadBtn}
-                      title={t('download')}
+                      title={t('download') || 'Скачать'}
                     >
                       <Download size={18} />
                     </a>

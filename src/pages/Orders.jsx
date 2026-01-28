@@ -133,6 +133,13 @@ export default function Orders() {
   const handleMarkDelivered = async (orderId) => {
     setProcessing(orderId)
     try {
+      // Find the order to confirm
+      const order = orders.find(o => o.id === orderId)
+      if (!order) {
+        throw new Error('Order not found')
+      }
+      
+      // Mark as delivered - buyer can now download from their purchases page
       await updateDoc(doc(db, 'orders', orderId), {
         status: ORDER_STATUS.DELIVERED,
         deliveredAt: serverTimestamp(),
@@ -142,12 +149,13 @@ export default function Orders() {
           by: user.displayName || user.email,
           byId: user.id,
           at: new Date().toISOString(),
-          note: 'Seller marked order as delivered'
+          note: 'Seller marked order as delivered - buyer can now download'
         })
       })
       setOrders(prev => prev.map(o => 
         o.id === orderId ? { ...o, status: ORDER_STATUS.DELIVERED } : o
       ))
+      alert(t('orderDelivered') || 'Order marked as delivered! Buyer can now download the beat.')
     } catch (err) {
       console.error('Error marking delivered:', err)
       alert(t('errorMarkingDelivered') || 'Failed to mark as delivered')

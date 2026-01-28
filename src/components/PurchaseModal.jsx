@@ -97,6 +97,9 @@ export default function PurchaseModal({ beat, license, onClose }) {
         licenseKey: license.key,
         price: license.price,
         
+        // Store beat file URL for download after delivery
+        beatFileUrl: beat.files?.[license.key] || beat.audioUrl || null,
+        
         buyerId: user?.id || null,
         buyerName: user?.name || 'Guest',
         buyerEmail: email,
