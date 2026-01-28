@@ -88,6 +88,8 @@ export default function PurchaseModal({ beat, license, onClose }) {
       // Convert proof image to base64 for storage
       const proofBase64 = proofPreview
 
+      console.log('Creating order with buyerId:', user?.id)
+
       const orderData = {
         orderRef,
         beatId: beat.id,
@@ -125,7 +127,8 @@ export default function PurchaseModal({ beat, license, onClose }) {
         updatedAt: serverTimestamp()
       }
 
-      await addDoc(collection(db, 'orders'), orderData)
+      const docRef = await addDoc(collection(db, 'orders'), orderData)
+      console.log('Order created with ID:', docRef.id)
       setOrderId(orderRef)
       setStep(STEPS.SUCCESS)
 

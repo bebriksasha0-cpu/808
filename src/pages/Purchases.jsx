@@ -42,10 +42,13 @@ export default function Purchases() {
   useEffect(() => {
     const loadPurchases = async () => {
       if (!user?.id) {
+        console.log('No user id, skipping purchases load')
         setLoading(false)
         return
       }
 
+      console.log('Loading purchases for user:', user.id)
+      
       try {
         // Load from orders collection where user is the buyer
         const ordersQuery = query(
@@ -53,6 +56,8 @@ export default function Purchases() {
           where('buyerId', '==', user.id)
         )
         const snapshot = await getDocs(ordersQuery)
+        console.log('Found orders:', snapshot.docs.length)
+        
         const ordersData = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
