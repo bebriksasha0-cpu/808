@@ -13,6 +13,11 @@ export default function Upload() {
   const { t } = useLanguage()
   const { user } = useAuth()
   
+  // Redirect to auth if not logged in
+  if (!user) {
+    return <Navigate to="/auth?mode=signup" replace />
+  }
+  
   // Admin account can't upload beats
   if (user?.isAdmin) {
     return <Navigate to="/admin" replace />

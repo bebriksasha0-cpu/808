@@ -63,6 +63,8 @@ export default function Header() {
 
         {/* Mobile Menu */}
         <div className={styles.mobileActions}>
+          <CountrySelector />
+          
           <button 
             className={styles.iconBtn} 
             onClick={toggleTheme}
@@ -70,9 +72,33 @@ export default function Header() {
           >
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <Link to="/auth" className={styles.iconBtn} aria-label="Sign in">
-            <User size={20} />
-          </Link>
+          
+          {user && !user.isAdmin && (
+            <>
+              <Link to="/orders" className={styles.iconBtn} aria-label="Orders">
+                <Package size={20} />
+              </Link>
+              <Link to="/upload" className={styles.iconBtn} aria-label="Upload">
+                <Upload size={20} />
+              </Link>
+            </>
+          )}
+          
+          {user?.isAdmin && (
+            <Link to="/admin" className={styles.iconBtn} aria-label="Admin">
+              <Shield size={20} />
+            </Link>
+          )}
+          
+          {user ? (
+            <Link to="/profile" className={styles.iconBtn} aria-label="Profile">
+              <User size={20} />
+            </Link>
+          ) : (
+            <Link to="/auth" className={styles.iconBtn} aria-label="Sign in">
+              <User size={20} />
+            </Link>
+          )}
         </div>
       </div>
     </header>
