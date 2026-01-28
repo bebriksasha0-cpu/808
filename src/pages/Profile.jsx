@@ -106,9 +106,9 @@ export default function Profile() {
           setWallet(walletDoc.data())
         }
 
-        // Load sales (purchases where user is seller)
+        // Load sales (orders where user is seller)
         const salesQuery = query(
-          collection(db, 'purchases'),
+          collection(db, 'orders'),
           where('sellerId', '==', user.id)
         )
         const salesSnapshot = await getDocs(salesQuery)
@@ -123,9 +123,9 @@ export default function Profile() {
         })
         setSales(salesData)
 
-        // Load purchases (where user is buyer)
+        // Load purchases (orders where user is buyer)
         const purchasesQuery = query(
-          collection(db, 'purchases'),
+          collection(db, 'orders'),
           where('buyerId', '==', user.id)
         )
         const purchasesSnapshot = await getDocs(purchasesQuery)
@@ -196,8 +196,8 @@ export default function Profile() {
         createdAt: serverTimestamp()
       })
 
-      // Update purchase status
-      await updateDoc(doc(db, 'purchases', disputePurchase.id), {
+      // Update order status
+      await updateDoc(doc(db, 'orders', disputePurchase.id), {
         disputeStatus: 'open'
       })
 
