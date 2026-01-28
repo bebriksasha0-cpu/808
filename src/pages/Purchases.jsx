@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Music, Download, Clock, CheckCircle, AlertTriangle, Loader2, ShoppingBag, Flag, XCircle, Eye, Send, Shield } from 'lucide-react'
-import { collection, query, where, getDocs, doc, updateDoc, addDoc, serverTimestamp, orderBy, arrayUnion } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, updateDoc, addDoc, serverTimestamp, arrayUnion } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
@@ -50,8 +50,7 @@ export default function Purchases() {
         // Load from orders collection where user is the buyer
         const ordersQuery = query(
           collection(db, 'orders'),
-          where('buyerId', '==', user.id),
-          orderBy('createdAt', 'desc')
+          where('buyerId', '==', user.id)
         )
         const snapshot = await getDocs(ordersQuery)
         const ordersData = snapshot.docs.map(doc => ({
@@ -59,6 +58,8 @@ export default function Purchases() {
           ...doc.data(),
           createdAt: doc.data().createdAt?.toDate?.() || new Date()
         }))
+        // Sort by date on client side
+        ordersData.sort((a, b) => b.createdAt - a.createdAt)
         setPurchases(ordersData)
       } catch (err) {
         console.error('Error loading purchases:', err)
