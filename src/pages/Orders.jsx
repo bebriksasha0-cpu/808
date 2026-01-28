@@ -49,18 +49,22 @@ export default function Orders() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    console.log('Orders useEffect - authLoading:', authLoading, 'user:', user?.id)
     if (!authLoading) {
       loadOrders()
     }
   }, [user?.id, authLoading])
 
   const loadOrders = async () => {
+    console.log('loadOrders called - user?.id:', user?.id)
     if (!user?.id) {
+      console.log('No user id, setting loading false')
       setLoading(false)
       return
     }
     
     setError(null)
+    console.log('Starting to fetch orders for seller:', user.id)
     try {
       // Try with orderBy first, fallback to simple query if index not ready
       let ordersData = []
