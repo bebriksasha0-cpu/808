@@ -254,6 +254,61 @@
   }
 }
 
+@media (max-width: 480px) {
+  .explore {
+    padding: var(--space-md) 0;
+  }
+  
+  .header {
+    margin-bottom: var(--space-md);
+  }
+  
+  .title {
+    font-size: var(--font-xl);
+  }
+  
+  .filters {
+    margin-bottom: var(--space-md);
+  }
+  
+  .searchWrapper {
+    max-width: 100%;
+  }
+  
+  .beatRow {
+    grid-template-columns: 36px 1fr 70px;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+  }
+  
+  .playBtn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .beatCover {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .beatTitle {
+    font-size: var(--font-sm);
+  }
+  
+  .beatProducer {
+    font-size: var(--font-xs);
+  }
+  
+  .beatPrice {
+    font-size: var(--font-sm);
+  }
+  
+  .likeBtn {
+    width: 32px;
+    height: 32px;
+  }
+}
+
 .loading {
   display: flex;
   justify-content: center;
