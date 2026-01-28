@@ -86,7 +86,37 @@ export default function PurchaseModal({ beat, license, onClose }) {
       const orderRef = generateOrderRef()
       
       // Convert proof image to base64 for storage
-      const proofBase64 = proofPreview
+      // Compress if too large (Firestore has 1MB document limit)
+      let proofBase64 = proofPreview
+      
+      // Check if proof is too large (over 500KB base64 ~ 375KB file)
+      if (proofBase64 && proofBase64.length > 500000) {
+        // Compress image using canvas
+        const img = new Image()
+        await new Promise((resolve, reject) => {
+          img.onload = resolve
+          img.onerror = reject
+          img.src = proofBase64
+        })
+        
+        const canvas = document.createElement('canvas')
+        const maxSize = 800 // max width/height
+        let { width, height } = img
+        
+        if (width > height && width > maxSize) {
+          height = (height * maxSize) / width
+          width = maxSize
+        } else if (height > maxSize) {
+          width = (width * maxSize) / height
+          height = maxSize
+        }
+        
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, width, height)
+        proofBase64 = canvas.toDataURL('image/jpeg', 0.7) // compress to 70% quality JPEG
+      }
 
       console.log('Creating order with buyerId:', user?.id)
 
