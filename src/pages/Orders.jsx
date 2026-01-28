@@ -270,7 +270,9 @@ export default function Orders() {
         <div className={styles.container}>
           <div className={styles.loading}>
             <Loader2 className="spin" size={32} />
-            <p>{t('loading') || 'Loading...'}</p>
+            <p style={{ marginTop: '1rem', color: 'var(--text-secondary)' }}>
+              {authLoading ? 'Проверка авторизации...' : 'Загрузка заказов...'}
+            </p>
           </div>
         </div>
       </div>
