@@ -40,16 +40,19 @@ const ORDER_STATUS = {
 
 export default function Orders() {
   const { t } = useLanguage()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedOrder, setExpandedOrder] = useState(null)
   const [filter, setFilter] = useState('all')
   const [processing, setProcessing] = useState(null)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    loadOrders()
-  }, [user?.id])
+    if (!authLoading) {
+      loadOrders()
+    }
+  }, [user?.id, authLoading])
 
   const loadOrders = async () => {
     if (!user?.id) {
@@ -57,6 +60,7 @@ export default function Orders() {
       return
     }
     
+    setError(null)
     try {
       // Try with orderBy first, fallback to simple query if index not ready
       let ordersData = []
@@ -91,6 +95,7 @@ export default function Orders() {
       setOrders(ordersData)
     } catch (err) {
       console.error('Error loading orders:', err)
+      setError(err.message)
     }
     setLoading(false)
   }
@@ -255,6 +260,19 @@ export default function Orders() {
     disputed: orders.filter(o => o.status === ORDER_STATUS.DISPUTED).length,
   }
 
+  if (authLoading || loading) {
+    return (
+      <div className={styles.orders}>
+        <div className={styles.container}>
+          <div className={styles.loading}>
+            <Loader2 className="spin" size={32} />
+            <p>{t('loading') || 'Loading...'}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (!user) {
     return (
       <div className={styles.orders}>
@@ -270,12 +288,15 @@ export default function Orders() {
     )
   }
 
-  if (loading) {
+  if (error) {
     return (
       <div className={styles.orders}>
         <div className={styles.container}>
-          <div className={styles.loading}>
-            <Loader2 className="spin" size={32} />
+          <div className={styles.empty}>
+            <AlertCircle size={48} />
+            <h2>{t('error') || 'Error'}</h2>
+            <p>{error}</p>
+            <button onClick={loadOrders} className="btn btn-primary">{t('retry') || 'Retry'}</button>
           </div>
         </div>
       </div>
