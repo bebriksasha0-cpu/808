@@ -11,7 +11,6 @@ import Auth from './pages/Auth'
 import Terms from './pages/Terms'
 import Settings from './pages/Settings'
 import Purchases from './pages/Purchases'
-import Orders from './pages/Orders'
 import Admin from './pages/Admin'
 
 export default function App() {
@@ -29,7 +28,6 @@ export default function App() {
         <Route path="terms" element={<Terms />} />
         <Route path="settings" element={<Settings />} />
         <Route path="purchases" element={<Purchases />} />
-        <Route path="orders" element={<Orders />} />
         <Route path="admin" element={<Admin />} />
       </Route>
     </Routes>

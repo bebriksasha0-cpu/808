@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Sun, Moon, User, Upload, Shield, Package } from 'lucide-react'
+import { Sun, Moon, User, Upload, Shield } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -35,9 +35,6 @@ export default function Header() {
           
           {user && !user.isAdmin && (
             <>
-              <Link to="/orders" className={styles.iconBtn} aria-label="Orders" title={t('orders') || 'Orders'}>
-                <Package size={20} />
-              </Link>
               <Link to="/upload" className={styles.iconBtn} aria-label="Upload beat">
                 <Upload size={20} />
               </Link>
@@ -75,9 +72,6 @@ export default function Header() {
           
           {user && !user.isAdmin && (
             <>
-              <Link to="/orders" className={styles.iconBtn} aria-label="Orders">
-                <Package size={20} />
-              </Link>
               <Link to="/upload" className={styles.iconBtn} aria-label="Upload">
                 <Upload size={20} />
               </Link>
