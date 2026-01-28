@@ -512,7 +512,7 @@ export default function Admin() {
         await deleteDoc(doc(db, 'wallets', walletDoc.id))
       }
 
-      // Delete all users except admin (L)
+      // Delete all users from Firestore except admin (L)
       const usersSnapshot = await getDocs(collection(db, 'users'))
       for (const userDoc of usersSnapshot.docs) {
         const userData = userDoc.data()
