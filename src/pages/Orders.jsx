@@ -58,17 +58,36 @@ export default function Orders() {
     }
     
     try {
-      const ordersQuery = query(
-        collection(db, 'orders'),
-        where('sellerId', '==', user.id),
-        orderBy('createdAt', 'desc')
-      )
-      const snapshot = await getDocs(ordersQuery)
-      const ordersData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.() || new Date()
-      }))
+      // Try with orderBy first, fallback to simple query if index not ready
+      let ordersData = []
+      try {
+        const ordersQuery = query(
+          collection(db, 'orders'),
+          where('sellerId', '==', user.id),
+          orderBy('createdAt', 'desc')
+        )
+        const snapshot = await getDocs(ordersQuery)
+        ordersData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate?.() || new Date()
+        }))
+      } catch (indexError) {
+        // Fallback: query without orderBy if index doesn't exist
+        console.warn('Index not ready, falling back to simple query:', indexError.message)
+        const simpleQuery = query(
+          collection(db, 'orders'),
+          where('sellerId', '==', user.id)
+        )
+        const snapshot = await getDocs(simpleQuery)
+        ordersData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate?.() || new Date()
+        }))
+        // Sort manually
+        ordersData.sort((a, b) => b.createdAt - a.createdAt)
+      }
       setOrders(ordersData)
     } catch (err) {
       console.error('Error loading orders:', err)
