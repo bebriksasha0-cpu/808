@@ -1,0 +1,140 @@
+.terms {
+  padding: var(--space-2xl) 0;
+  min-height: 100vh;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  margin-bottom: var(--space-xl);
+  transition: color var(--transition-fast);
+}
+
+.backLink:hover {
+  color: var(--text-primary);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-2xl);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-md);
+}
+
+.tab {
+  padding: var(--space-sm) var(--space-lg);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.tab.active {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.content {
+  max-width: 800px;
+}
+
+.article {
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.article h1 {
+  font-size: var(--font-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+  letter-spacing: -0.02em;
+}
+
+.article h2 {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-md);
+  letter-spacing: -0.01em;
+}
+
+.article p {
+  margin-bottom: var(--space-md);
+}
+
+.article ul {
+  margin-bottom: var(--space-md);
+  padding-left: var(--space-lg);
+}
+
+.article li {
+  margin-bottom: var(--space-sm);
+  position: relative;
+}
+
+.article li::before {
+  content: '•';
+  position: absolute;
+  left: calc(-1 * var(--space-md));
+  color: var(--accent);
+}
+
+.article a {
+  color: var(--accent);
+  transition: color var(--transition-fast);
+}
+
+.article a:hover {
+  color: var(--accent-hover);
+}
+
+.date {
+  color: var(--text-tertiary);
+  font-size: var(--font-sm);
+  margin-bottom: var(--space-xl);
+}
+
+.notice {
+  margin-top: var(--space-2xl);
+  padding: var(--space-lg);
+  background: var(--accent-muted);
+  border-radius: var(--radius-lg);
+  border-left: 3px solid var(--accent);
+}
+
+.notice p {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-xs);
+  }
+
+  .article h1 {
+    font-size: var(--font-xl);
+  }
+
+  .article h2 {
+    font-size: var(--font-md);
+  }
+}
