@@ -512,6 +512,12 @@ export default function Admin() {
         await deleteDoc(doc(db, 'wallets', walletDoc.id))
       }
 
+      // Delete all withdrawals
+      const withdrawalsSnapshot = await getDocs(collection(db, 'withdrawals'))
+      for (const withdrawalDoc of withdrawalsSnapshot.docs) {
+        await deleteDoc(doc(db, 'withdrawals', withdrawalDoc.id))
+      }
+
       // Delete all users from Firestore except admin (L)
       const usersSnapshot = await getDocs(collection(db, 'users'))
       for (const userDoc of usersSnapshot.docs) {
@@ -524,12 +530,16 @@ export default function Admin() {
       // Reset local state
       setBeats([])
       setPurchases([])
+      setOrders([])
+      setWithdrawals([])
       setUsers(users.filter(u => u.name === 'L' || u.name === 'l'))
       setStats({
         totalUsers: 1,
         totalBeats: 0,
         totalSales: 0,
-        totalRevenue: 0
+        totalRevenue: 0,
+        pendingWithdrawals: 0,
+        disputedOrders: 0
       })
 
       alert('✅ Все данные очищены! Сайт как новый.')
