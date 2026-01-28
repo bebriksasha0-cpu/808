@@ -17,21 +17,12 @@ export default function Home() {
           <p className={styles.tagline}>{t('tagline')}</p>
           
           <div className={styles.actions}>
-            {user ? (
-              <>
-                <Link to="/explore" className={styles.heroBtn}>
-                  {t('buyBeat')}
-                </Link>
-                <Link to="/upload" className={styles.heroBtnSecondary}>
-                  {t('sellBeat')}
-                </Link>
-              </>
-            ) : (
-              <Link to="/auth" className={styles.heroBtn}>
-                {t('signIn')}
-                <ArrowRight size={20} />
-              </Link>
-            )}
+            <Link to="/explore" className={styles.heroBtn}>
+              {t('buyBeat')}
+            </Link>
+            <Link to={user ? "/upload" : "/auth?mode=signup"} className={styles.heroBtnSecondary}>
+              {t('sellBeat')}
+            </Link>
           </div>
         </div>
       </section>
