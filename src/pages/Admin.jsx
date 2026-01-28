@@ -466,7 +466,7 @@ export default function Admin() {
 
   // NUCLEAR OPTION: Clear all data except admin
   const handleClearAllData = async () => {
-    if (!confirm('⚠️ ВНИМАНИЕ! Это удалит ВСЁ:\n\n- Все биты\n- Все покупки\n- Все транзакции\n- Все кошельки\n- Всех пользователей (кроме админа)\n\nПродолжить?')) {
+    if (!confirm('⚠️ ВНИМАНИЕ! Это удалит ВСЁ:\n\n- Все биты\n- Все заказы/покупки\n- Все транзакции\n- Все кошельки\n- Все споры\n- Всех пользователей (кроме админа)\n\nПродолжить?')) {
       return
     }
     
@@ -482,10 +482,22 @@ export default function Admin() {
         await deleteDoc(doc(db, 'beats', beatDoc.id))
       }
 
-      // Delete all purchases
+      // Delete all orders (new collection)
+      const ordersSnapshot = await getDocs(collection(db, 'orders'))
+      for (const orderDoc of ordersSnapshot.docs) {
+        await deleteDoc(doc(db, 'orders', orderDoc.id))
+      }
+
+      // Delete all purchases (old collection)
       const purchasesSnapshot = await getDocs(collection(db, 'purchases'))
       for (const purchaseDoc of purchasesSnapshot.docs) {
         await deleteDoc(doc(db, 'purchases', purchaseDoc.id))
+      }
+
+      // Delete all disputes
+      const disputesSnapshot = await getDocs(collection(db, 'disputes'))
+      for (const disputeDoc of disputesSnapshot.docs) {
+        await deleteDoc(doc(db, 'disputes', disputeDoc.id))
       }
 
       // Delete all transactions
