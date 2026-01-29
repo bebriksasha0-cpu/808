@@ -354,9 +354,14 @@
   color: var(--error);
 }
 
-.statusRejected {
+.statusRejected, .statusCancelled {
   background: rgba(239, 68, 68, 0.1);
   color: var(--error);
+}
+
+.cancelledNote {
+  font-size: var(--font-sm);
+  color: var(--warning);
 }
 
 /* Sale Card Layout */

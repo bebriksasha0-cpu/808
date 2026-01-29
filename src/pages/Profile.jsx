@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { User, Settings, Music, Edit2, Loader2, Heart, DollarSign, ShoppingBag, Clock, CheckCircle, AlertTriangle, X, Send, XCircle, Eye } from 'lucide-react'
+import { User, Settings, Music, Edit2, Loader2, Heart, DollarSign, ShoppingBag, Clock, CheckCircle, AlertTriangle, X, XCircle, Eye } from 'lucide-react'
 import { collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { sendTelegramMessage } from '../utils/telegram'
@@ -238,26 +238,21 @@ export default function Profile() {
     setShowProofModal(true)
   }
 
-  // Seller: Confirm payment received
+  // Seller: Confirm payment received - immediately delivers the beat
   const confirmPayment = async (sale) => {
     if (processingOrderId) return
     setProcessingOrderId(sale.id)
     try {
       await updateDoc(doc(db, 'orders', sale.id), {
-        status: 'approved',
+        status: 'delivered',
         paymentConfirmedAt: serverTimestamp(),
+        deliveredAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       })
       setSales(prev => prev.map(s => 
-        s.id === sale.id ? { ...s, status: 'approved' } : s
+        s.id === sale.id ? { ...s, status: 'delivered' } : s
       ))
-      await sendTelegramMessage(
-        `✅ <b>Оплата подтверждена!</b>\n\n` +
-        `🎵 Бит: ${sale.beatTitle}\n` +
-        `💰 Сумма: $${sale.price}\n` +
-        `👤 Покупатель: ${sale.buyerName}\n` +
-        `👤 Продавец: ${user.name}`
-      )
+      alert('✅ Оплата подтверждена! Бит доступен покупателю для скачивания.')
     } catch (err) {
       console.error('Error confirming payment:', err)
       alert('Ошибка при подтверждении')
@@ -265,60 +260,25 @@ export default function Profile() {
     setProcessingOrderId(null)
   }
 
-  // Seller: Reject payment (not received)
+  // Seller: Reject payment (not received) - sets status to cancelled
   const rejectPayment = async (sale) => {
     if (processingOrderId) return
-    const reason = prompt('Причина отклонения (оплата не пришла и т.д.):')
-    if (!reason) return
+    if (!confirm('Отклонить заказ? Покупатель сможет открыть спор.')) return
     setProcessingOrderId(sale.id)
     try {
       await updateDoc(doc(db, 'orders', sale.id), {
-        status: 'rejected',
-        rejectedAt: serverTimestamp(),
-        rejectionReason: reason,
+        status: 'cancelled',
+        cancelledAt: serverTimestamp(),
+        cancelReason: 'Оплата не подтверждена продавцом',
         updatedAt: serverTimestamp()
       })
       setSales(prev => prev.map(s => 
-        s.id === sale.id ? { ...s, status: 'rejected' } : s
+        s.id === sale.id ? { ...s, status: 'cancelled' } : s
       ))
-      await sendTelegramMessage(
-        `❌ <b>Оплата отклонена!</b>\n\n` +
-        `🎵 Бит: ${sale.beatTitle}\n` +
-        `👤 Покупатель: ${sale.buyerName}\n` +
-        `📝 Причина: ${reason}`
-      )
+      alert('Заказ отменён')
     } catch (err) {
-      console.error('Error rejecting payment:', err)
-      alert('Ошибка при отклонении')
-    }
-    setProcessingOrderId(null)
-  }
-
-  // Seller: Deliver beat
-  const deliverBeat = async (sale) => {
-    if (processingOrderId) return
-    if (!confirm(`Отправить бит "${sale.beatTitle}" покупателю ${sale.buyerName}?`)) return
-    setProcessingOrderId(sale.id)
-    try {
-      await updateDoc(doc(db, 'orders', sale.id), {
-        status: 'delivered',
-        deliveredAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      })
-      setSales(prev => prev.map(s => 
-        s.id === sale.id ? { ...s, status: 'delivered' } : s
-      ))
-      await sendTelegramMessage(
-        `📦 <b>Бит отправлен!</b>\n\n` +
-        `🎵 Бит: ${sale.beatTitle}\n` +
-        `💰 Сумма: $${sale.price}\n` +
-        `👤 Покупатель: ${sale.buyerName}\n` +
-        `👤 Продавец: ${user.name}`
-      )
-      alert('✅ Бит отправлен покупателю!')
-    } catch (err) {
-      console.error('Error delivering beat:', err)
-      alert('Ошибка при отправке')
+      console.error('Error cancelling order:', err)
+      alert('Ошибка при отмене')
     }
     setProcessingOrderId(null)
   }
@@ -459,11 +419,6 @@ export default function Profile() {
                             <Clock size={14} />
                             Ожидает проверки
                           </span>
-                        ) : sale.status === 'approved' ? (
-                          <span className={styles.statusApproved}>
-                            <CheckCircle size={14} />
-                            Оплата подтверждена
-                          </span>
                         ) : sale.status === 'delivered' || sale.status === 'admin_delivered' ? (
                           <span className={styles.statusCompleted}>
                             <CheckCircle size={14} />
@@ -474,10 +429,10 @@ export default function Profile() {
                             <AlertTriangle size={14} />
                             Спор
                           </span>
-                        ) : sale.status === 'rejected' ? (
-                          <span className={styles.statusRejected}>
+                        ) : sale.status === 'cancelled' ? (
+                          <span className={styles.statusCancelled}>
                             <X size={14} />
-                            Отклонено
+                            Отменено
                           </span>
                         ) : (
                           <span className={styles.statusPending}>
@@ -519,24 +474,14 @@ export default function Profile() {
                           </button>
                         </>
                       )}
-                      {sale.status === 'approved' && (
-                        <button 
-                          className={styles.deliverBtn}
-                          onClick={() => deliverBeat(sale)}
-                          disabled={processingOrderId === sale.id}
-                        >
-                          <Send size={16} />
-                          Отправить бит
-                        </button>
-                      )}
                       {(sale.status === 'delivered' || sale.status === 'admin_delivered') && (
                         <span className={styles.deliveredNote}>
                           ✅ Сделка завершена • {formatDate(sale.deliveredAt || sale.createdAt)}
                         </span>
                       )}
-                      {sale.status === 'rejected' && (
-                        <span className={styles.rejectedNote}>
-                          ❌ {sale.rejectionReason || 'Оплата не подтверждена'}
+                      {sale.status === 'cancelled' && (
+                        <span className={styles.cancelledNote}>
+                          ⏳ Отменено • Покупатель может открыть спор
                         </span>
                       )}
                     </div>

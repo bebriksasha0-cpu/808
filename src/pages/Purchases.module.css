@@ -171,6 +171,11 @@
   color: var(--error);
 }
 
+.status.cancelled {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+}
+
 .status.disputed {
   background: rgba(239, 68, 68, 0.1);
   color: var(--error);
@@ -184,24 +189,56 @@
 
 .actions {
   display: flex;
-  gap: var(--space-xs);
-  justify-content: center;
+  gap: var(--space-sm);
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .downloadBtn {
-  width: 36px;
-  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-md);
   background: var(--accent);
   color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: var(--font-sm);
+  font-weight: 500;
+  text-decoration: none;
   transition: all var(--transition-fast);
 }
 
 .downloadBtn:hover {
-  transform: scale(1.05);
+  background: var(--accent-hover);
+  transform: scale(1.02);
+}
+
+.disputeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.disputeBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.waitingNote {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
 }
 
 .reportBtn {

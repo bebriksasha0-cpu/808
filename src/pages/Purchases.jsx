@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Music, Download, Clock, CheckCircle, AlertTriangle, Loader2, ShoppingBag, Flag, XCircle, Eye, Send, Shield } from 'lucide-react'
+import { Music, Download, Clock, CheckCircle, AlertTriangle, Loader2, ShoppingBag, Flag, XCircle } from 'lucide-react'
 import { collection, query, where, getDocs, doc, updateDoc, addDoc, serverTimestamp, arrayUnion } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { useLanguage } from '../context/LanguageContext'
@@ -23,6 +23,7 @@ const ORDER_STATUS = {
   PENDING: 'pending',
   APPROVED: 'approved',
   REJECTED: 'rejected',
+  CANCELLED: 'cancelled',
   DELIVERED: 'delivered',
   DISPUTED: 'disputed',
   ADMIN_DELIVERED: 'admin_delivered'
@@ -36,8 +37,6 @@ export default function Purchases() {
   const [showDispute, setShowDispute] = useState(null)
   const [disputeReason, setDisputeReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [expandedOrder, setExpandedOrder] = useState(null)
-  const [showProof, setShowProof] = useState(null)
 
   useEffect(() => {
     const loadPurchases = async () => {
@@ -148,14 +147,7 @@ export default function Purchases() {
         return (
           <span className={`${styles.status} ${styles.pending}`}>
             <Clock size={14} />
-            {t('pending') || 'Ожидание'}
-          </span>
-        )
-      case ORDER_STATUS.APPROVED:
-        return (
-          <span className={`${styles.status} ${styles.approved}`}>
-            <CheckCircle size={14} />
-            {t('approved') || 'Подтверждено'}
+            {t('awaitingConfirmation') || 'Ожидание подтверждения'}
           </span>
         )
       case ORDER_STATUS.DELIVERED:
@@ -166,11 +158,12 @@ export default function Purchases() {
             {t('delivered') || 'Доставлено'}
           </span>
         )
+      case ORDER_STATUS.CANCELLED:
       case ORDER_STATUS.REJECTED:
         return (
-          <span className={`${styles.status} ${styles.rejected}`}>
+          <span className={`${styles.status} ${styles.cancelled}`}>
             <XCircle size={14} />
-            {t('rejected') || 'Отклонено'}
+            {t('cancelled') || 'Отменено'}
           </span>
         )
       case ORDER_STATUS.DISPUTED:
@@ -243,17 +236,6 @@ export default function Purchases() {
                 </div>
 
                 <div className={styles.actions}>
-                  {/* View proof button */}
-                  {order.paymentProof && (
-                    <button 
-                      className={styles.viewBtn}
-                      onClick={() => setShowProof(order.paymentProof)}
-                      title={t('viewProof') || 'Просмотр чека'}
-                    >
-                      <Eye size={18} />
-                    </button>
-                  )}
-                  
                   {/* Download available only for delivered orders */}
                   {(order.status === ORDER_STATUS.DELIVERED || order.status === ORDER_STATUS.ADMIN_DELIVERED) && order.beatFileUrl && (
                     <a 
@@ -262,20 +244,29 @@ export default function Purchases() {
                       title={t('download') || 'Скачать'}
                     >
                       <Download size={18} />
+                      <span>Скачать {(order.licenseKey || order.licenseType || 'MP3').toUpperCase()}</span>
                     </a>
                   )}
                   
-                  {/* Dispute button - not for already disputed or delivered */}
-                  {order.status !== ORDER_STATUS.DISPUTED && 
-                   order.status !== ORDER_STATUS.DELIVERED && 
-                   order.status !== ORDER_STATUS.ADMIN_DELIVERED && (
+                  {/* Dispute button - only for cancelled orders */}
+                  {(order.status === ORDER_STATUS.CANCELLED || order.status === ORDER_STATUS.REJECTED) && 
+                   order.status !== ORDER_STATUS.DISPUTED && (
                     <button 
-                      className={styles.reportBtn}
+                      className={styles.disputeBtn}
                       onClick={() => setShowDispute(order.id)}
-                      title={t('reportProblem') || 'Открыть спор'}
+                      title={t('dispute') || 'Оспорить'}
                     >
                       <Flag size={16} />
+                      <span>Оспорить</span>
                     </button>
+                  )}
+                  
+                  {/* Pending status - just show waiting message */}
+                  {order.status === ORDER_STATUS.PENDING && (
+                    <span className={styles.waitingNote}>
+                      <Clock size={14} />
+                      Ожидание подтверждения продавцом
+                    </span>
                   )}
                 </div>
               </div>
@@ -296,12 +287,12 @@ export default function Purchases() {
         {showDispute && (
           <div className={styles.modalOverlay} onClick={() => setShowDispute(null)}>
             <div className={styles.modal} onClick={e => e.stopPropagation()}>
-              <h3 className={styles.modalTitle}>{t('reportProblem')}</h3>
-              <p className={styles.modalText}>{t('describeIssue')}</p>
+              <h3 className={styles.modalTitle}>{t('reportProblem') || 'Открыть спор'}</h3>
+              <p className={styles.modalText}>{t('describeIssue') || 'Опишите проблему'}</p>
               
               <textarea
                 className={styles.textarea}
-                placeholder={t('disputeReasonPlaceholder')}
+                placeholder={t('disputeReasonPlaceholder') || 'Опишите причину спора...'}
                 value={disputeReason}
                 onChange={e => setDisputeReason(e.target.value)}
                 rows={4}
@@ -315,32 +306,16 @@ export default function Purchases() {
                     setDisputeReason('')
                   }}
                 >
-                  {t('cancel')}
+                  {t('cancel') || 'Отмена'}
                 </button>
                 <button 
                   className="btn btn-primary"
                   onClick={() => handleDispute(showDispute)}
                   disabled={submitting || !disputeReason.trim()}
                 >
-                  {submitting ? <Loader2 size={16} className={styles.spinner} /> : t('submitDispute')}
+                  {submitting ? <Loader2 size={16} className={styles.spinner} /> : (t('submitDispute') || 'Отправить')}
                 </button>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Proof Image Modal */}
-        {showProof && (
-          <div className={styles.modalOverlay} onClick={() => setShowProof(null)}>
-            <div className={styles.proofModal} onClick={e => e.stopPropagation()}>
-              <h3 className={styles.modalTitle}>{t('paymentProof') || 'Чек оплаты'}</h3>
-              <img src={showProof} alt="Payment proof" className={styles.proofImage} />
-              <button 
-                className="btn btn-secondary"
-                onClick={() => setShowProof(null)}
-              >
-                {t('close') || 'Закрыть'}
-              </button>
             </div>
           </div>
         )}
