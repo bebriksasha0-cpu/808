@@ -233,6 +233,12 @@
 .beatProducer {
   font-size: var(--font-sm);
   color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.beatProducer:hover {
+  color: var(--primary);
 }
 
 .beatGenre,

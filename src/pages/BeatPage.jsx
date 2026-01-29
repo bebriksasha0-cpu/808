@@ -176,7 +176,9 @@ export default function BeatPage() {
 
             <div className={styles.beatInfo}>
               <h1 className={styles.title}>{beat.title}</h1>
-              <p className={styles.producer}>{t('by')} {beat.producer}</p>
+              <p className={styles.producer}>
+                {t('by')} <Link to={`/producer/${beat.producerId}`} className={styles.producerLink}>{beat.producer}</Link>
+              </p>
               
               <div className={styles.tags}>
                 <span className={styles.tag}>{beat.genre}</span>

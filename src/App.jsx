@@ -5,6 +5,7 @@ import Explore from './pages/Explore'
 import BeatPage from './pages/BeatPage'
 import EditBeat from './pages/EditBeat'
 import Profile from './pages/Profile'
+import ProducerProfile from './pages/ProducerProfile'
 import Wallet from './pages/Wallet'
 import Upload from './pages/Upload'
 import Auth from './pages/Auth'
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="beat/:id" element={<BeatPage />} />
         <Route path="beat/:id/edit" element={<EditBeat />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="producer/:id" element={<ProducerProfile />} />
         <Route path="wallet" element={<Wallet />} />
         <Route path="upload" element={<Upload />} />
         <Route path="auth" element={<Auth />} />

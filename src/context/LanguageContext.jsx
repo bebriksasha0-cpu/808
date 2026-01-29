@@ -97,6 +97,12 @@ export const translations = {
     revenue: 'Revenue',
     totalPlays: 'Total Plays',
     followers: 'followers',
+    follow: 'Follow',
+    unfollow: 'Unfollow',
+    producerBeats: 'Beats',
+    beatsCount: 'beats',
+    noBeatsYet: 'No beats uploaded yet',
+    producerNotFound: 'Producer not found',
     
     // Wallet
     wallet: 'Wallet',
@@ -597,6 +603,12 @@ export const translations = {
     revenue: 'Доход',
     totalPlays: 'Всего прослушиваний',
     followers: 'подписчиков',
+    follow: 'Подписаться',
+    unfollow: 'Отписаться',
+    producerBeats: 'Биты',
+    beatsCount: 'битов',
+    noBeatsYet: 'Нет загруженных битов',
+    producerNotFound: 'Продюсер не найден',
     
     // Wallet
     wallet: 'Кошелёк',
@@ -1095,6 +1107,12 @@ export const translations = {
     revenue: 'Дохід',
     totalPlays: 'Всього прослуховувань',
     followers: 'підписників',
+    follow: 'Підписатись',
+    unfollow: 'Відписатись',
+    producerBeats: 'Біти',
+    beatsCount: 'бітів',
+    noBeatsYet: 'Немає завантажених бітів',
+    producerNotFound: 'Продюсера не знайдено',
     
     // Wallet
     wallet: 'Гаманець',

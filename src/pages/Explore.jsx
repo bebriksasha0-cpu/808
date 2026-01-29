@@ -218,7 +218,9 @@ export default function Explore() {
                 <Link to={`/beat/${beat.id}`} className={styles.beatTitle}>
                   {beat.title}
                 </Link>
-                <span className={styles.beatProducer}>{beat.producer}</span>
+                <Link to={`/producer/${beat.producerId}`} className={styles.beatProducer}>
+                  {beat.producer}
+                </Link>
               </div>
               
               <span className={styles.beatGenre}>{beat.genre}</span>

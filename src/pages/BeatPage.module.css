@@ -234,6 +234,17 @@
   color: var(--text-secondary);
 }
 
+.producerLink {
+  color: var(--primary);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.producerLink:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
 .tags {
   display: flex;
   gap: var(--space-sm);
