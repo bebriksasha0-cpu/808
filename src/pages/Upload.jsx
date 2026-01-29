@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Navigate, Link } from 'react-router-dom'
-import { Upload as UploadIcon, Music, X, AlertCircle, Loader2, Image, FileAudio, Archive, Check, Send, Plus } from 'lucide-react'
+import { Upload as UploadIcon, Music, X, AlertCircle, Loader2, Image, FileAudio, Archive, Check, Send, Plus, Wand2 } from 'lucide-react'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { uploadToCloudinary } from '../config/cloudinary'
@@ -106,6 +106,30 @@ export default function Upload() {
     return allowedExtensions.includes(extension)
   }
 
+  // Analyze MP3 for BPM and Key
+  const handleAnalyzeAudio = async () => {
+    if (!mp3File) {
+      setError(t('uploadMp3First') || 'Upload MP3 file first')
+      return
+    }
+    
+    setIsAnalyzing(true)
+    setError('')
+    try {
+      const analysis = await analyzeAudio(mp3File)
+      if (analysis.bpm) {
+        setFormData(prev => ({ ...prev, bpm: String(analysis.bpm) }))
+      }
+      if (analysis.key) {
+        setFormData(prev => ({ ...prev, key: analysis.key }))
+      }
+    } catch (err) {
+      console.error('Audio analysis failed:', err)
+      setError(t('analysisError') || 'Failed to analyze audio')
+    }
+    setIsAnalyzing(false)
+  }
+
   // Handle file selection for specific license
   const handleLicenseFileChange = async (e, type) => {
     if (!e.target.files || !e.target.files[0]) return
@@ -119,21 +143,6 @@ export default function Upload() {
           return
         }
         setMp3File(file)
-        
-        // Analyze audio for BPM and Key
-        setIsAnalyzing(true)
-        try {
-          const analysis = await analyzeAudio(file)
-          if (analysis.bpm) {
-            setFormData(prev => ({ ...prev, bpm: String(analysis.bpm) }))
-          }
-          if (analysis.key) {
-            setFormData(prev => ({ ...prev, key: analysis.key }))
-          }
-        } catch (err) {
-          console.error('Audio analysis failed:', err)
-        }
-        setIsAnalyzing(false)
         break
       case 'wav':
         if (!validateFileType(file, ['wav'])) {
@@ -548,10 +557,7 @@ export default function Upload() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label className={styles.label}>
-                  {t('bpm')} *
-                  {isAnalyzing && <span className={styles.analyzingBadge}><Loader2 size={12} className={styles.spinnerSmall} /> {t('analyzing') || 'Analyzing...'}</span>}
-                </label>
+                <label className={styles.label}>{t('bpm')} *</label>
                 <input 
                   type="number"
                   className="input"
@@ -563,10 +569,7 @@ export default function Upload() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label className={styles.label}>
-                  Key
-                  {isAnalyzing && <span className={styles.analyzingBadge}><Loader2 size={12} className={styles.spinnerSmall} /> {t('analyzing') || 'Analyzing...'}</span>}
-                </label>
+                <label className={styles.label}>Key</label>
                 <select 
                   className="input"
                   value={formData.key}
@@ -604,6 +607,26 @@ export default function Upload() {
                 </select>
               </div>
             </div>
+
+            {/* Auto-detect BPM & Key Button */}
+            <button
+              type="button"
+              className={styles.analyzeBtn}
+              onClick={handleAnalyzeAudio}
+              disabled={!mp3File || isAnalyzing}
+            >
+              {isAnalyzing ? (
+                <>
+                  <Loader2 size={18} className={styles.spinnerSmall} />
+                  {t('analyzing') || 'Analyzing...'}
+                </>
+              ) : (
+                <>
+                  <Wand2 size={18} />
+                  {t('detectBpmKey') || 'Detect BPM & Key'}
+                </>
+              )}
+            </button>
 
             {/* Styles Multi-Select */}
             <div className={styles.inputGroup}>
