@@ -36,6 +36,78 @@
   }
 }
 
+@media (max-width: 768px) {
+  .beatPage {
+    padding: var(--space-lg) 0;
+  }
+  
+  .title {
+    font-size: var(--font-2xl);
+  }
+  
+  .producer {
+    font-size: var(--font-md);
+  }
+  
+  .playBtn {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+@media (max-width: 480px) {
+  .beatPage {
+    padding: var(--space-md) 0;
+  }
+  
+  .backLink {
+    margin-bottom: var(--space-md);
+  }
+  
+  .title {
+    font-size: var(--font-xl);
+  }
+  
+  .producer {
+    font-size: var(--font-sm);
+  }
+  
+  .cover {
+    aspect-ratio: 1/1;
+    border-radius: var(--radius-lg);
+  }
+  
+  .playBtn {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .tags {
+    gap: var(--space-xs);
+  }
+  
+  .tag {
+    font-size: var(--font-xs);
+    padding: 4px var(--space-sm);
+  }
+  
+  .licenseCard {
+    padding: var(--space-md);
+  }
+  
+  .licenseName {
+    font-size: var(--font-md);
+  }
+  
+  .licensePrice {
+    font-size: var(--font-lg);
+  }
+  
+  .modal {
+    padding: var(--space-lg);
+  }
+}
+
 /* Player Section */
 .playerSection {
   display: flex;

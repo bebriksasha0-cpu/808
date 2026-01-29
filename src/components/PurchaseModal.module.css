@@ -756,13 +756,27 @@
 
 /* Responsive */
 @media (max-width: 640px) {
+  .overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  
   .modal {
-    max-height: 100vh;
-    border-radius: 0;
+    max-height: 95vh;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+  
+  .header {
+    padding: var(--space-lg) var(--space-md);
+  }
+  
+  .header h2 {
+    font-size: var(--font-lg);
+    padding-right: var(--space-xl);
   }
   
   .content {
-    padding: var(--space-lg);
+    padding: var(--space-md);
   }
   
   .progress {
@@ -775,5 +789,68 @@
   
   .progressStep p {
     display: none;
+  }
+  
+  .closeBtn {
+    width: 32px;
+    height: 32px;
+    top: var(--space-md);
+    right: var(--space-md);
+  }
+  
+  .beatPreview {
+    gap: var(--space-sm);
+  }
+  
+  .beatCover {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .beatDetails h3 {
+    font-size: var(--font-sm);
+  }
+  
+  .beatDetails p {
+    font-size: var(--font-xs);
+  }
+  
+  .infoCard {
+    padding: var(--space-md);
+  }
+  
+  .methodCard {
+    padding: var(--space-md);
+  }
+  
+  .amountValue {
+    font-size: var(--font-xl);
+  }
+  
+  .uploadArea {
+    padding: var(--space-lg);
+  }
+  
+  .footer {
+    padding: var(--space-md);
+  }
+  
+  .footer button {
+    font-size: var(--font-sm);
+  }
+}
+
+@media (max-width: 380px) {
+  .modal {
+    max-height: 100vh;
+    border-radius: 0;
+  }
+  
+  .header h2 {
+    font-size: var(--font-md);
+  }
+  
+  .content {
+    padding: var(--space-sm);
   }
 }

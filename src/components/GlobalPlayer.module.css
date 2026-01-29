@@ -207,3 +207,40 @@
     display: none;
   }
 }
+
+@media (max-width: 480px) {
+  .player {
+    height: 56px;
+  }
+  
+  .container {
+    gap: var(--space-sm);
+  }
+  
+  .beatCover {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .beatTitle {
+    font-size: var(--font-xs);
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .beatProducer {
+    display: none;
+  }
+  
+  .controlBtn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .playBtn {
+    width: 40px;
+    height: 40px;
+  }
+}

@@ -104,3 +104,29 @@
 .check {
   color: var(--accent);
 }
+
+/* Mobile Optimizations */
+@media (max-width: 480px) {
+  .dropdown {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-height: 60vh;
+  }
+  
+  .list {
+    max-height: calc(60vh - 50px);
+  }
+  
+  .option {
+    padding: var(--space-md);
+  }
+  
+  .search {
+    padding: var(--space-md);
+  }
+}

@@ -570,10 +570,48 @@
   .tabs {
     overflow-x: auto;
     padding-bottom: 1rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .tabs::-webkit-scrollbar {
+    display: none;
   }
   
   .tab {
     white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin {
+    padding: 0.5rem;
+  }
+  
+  .title {
+    font-size: 1.25rem;
+  }
+  
+  .tab {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .statCard {
+    padding: 0.75rem;
+  }
+  
+  .statValue {
+    font-size: 1.25rem;
+  }
+  
+  .tableContainer {
+    overflow-x: auto;
+  }
+  
+  .table {
+    min-width: 600px;
   }
 }
 

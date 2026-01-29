@@ -65,6 +65,35 @@
   }
 }
 
+@media (max-width: 480px) {
+  .profile {
+    padding: var(--space-md) 0;
+  }
+  
+  .header {
+    padding-bottom: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  
+  .avatar {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .name {
+    font-size: var(--font-xl);
+  }
+  
+  .statsRow {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .actions {
+    flex-wrap: wrap;
+  }
+}
+
 /* Stats Grid */
 .statsGrid {
   display: grid;
@@ -76,6 +105,21 @@
 @media (max-width: 768px) {
   .statsGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsGrid {
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+  }
+  
+  .statCard {
+    padding: var(--space-md);
+  }
+  
+  .statValue {
+    font-size: var(--font-lg);
   }
 }
 
@@ -120,6 +164,13 @@
   gap: var(--space-lg);
   border-bottom: 1px solid var(--border);
   margin-bottom: var(--space-xl);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab {
@@ -138,6 +189,8 @@
   border-right: none;
   border-top: none;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tab:hover {
@@ -147,6 +200,18 @@
 .tab.active {
   color: var(--text-primary);
   border-bottom-color: var(--accent);
+}
+
+@media (max-width: 480px) {
+  .tabs {
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  
+  .tab {
+    font-size: var(--font-xs);
+    padding: var(--space-sm) 0;
+  }
 }
 
 /* Beats List */

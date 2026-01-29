@@ -200,3 +200,46 @@
   background: var(--error);
   color: white;
 }
+
+/* Mobile Optimizations */
+@media (max-width: 480px) {
+  .settings {
+    padding: var(--space-md) 0;
+  }
+  
+  .backLink {
+    margin-bottom: var(--space-md);
+  }
+  
+  .title {
+    font-size: var(--font-xl);
+    margin-bottom: var(--space-lg);
+  }
+  
+  .avatarWrapper {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .avatarSection {
+    margin-bottom: var(--space-lg);
+  }
+  
+  .inputGroup {
+    margin-bottom: var(--space-md);
+  }
+  
+  .input {
+    font-size: var(--font-md);
+  }
+  
+  .dangerZone {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-lg);
+  }
+  
+  .logoutBtn {
+    width: 100%;
+    padding: var(--space-md);
+  }
+}

@@ -332,3 +332,61 @@
 .skipBtn:hover {
   color: var(--text-primary);
 }
+
+/* Mobile Optimizations */
+@media (max-width: 480px) {
+  .auth {
+    padding: var(--space-md);
+    align-items: flex-start;
+    padding-top: var(--space-3xl);
+  }
+  
+  .logo {
+    font-size: var(--font-xl);
+    margin-bottom: var(--space-lg);
+  }
+  
+  .form {
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+  }
+  
+  .title {
+    font-size: var(--font-lg);
+  }
+  
+  .subtitle {
+    font-size: var(--font-sm);
+  }
+  
+  .inputGroup {
+    margin-bottom: var(--space-sm);
+  }
+  
+  .input {
+    font-size: var(--font-md);
+    padding: var(--space-sm) var(--space-md);
+    padding-left: 40px;
+  }
+  
+  .submitBtn {
+    font-size: var(--font-sm);
+    padding: var(--space-sm) var(--space-lg);
+  }
+  
+  .socialBtn {
+    font-size: var(--font-sm);
+  }
+  
+  .modalOverlay {
+    padding: var(--space-md);
+  }
+  
+  .modal {
+    padding: var(--space-lg);
+  }
+  
+  .modalTitle {
+    font-size: var(--font-lg);
+  }
+}

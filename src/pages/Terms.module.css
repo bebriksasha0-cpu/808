@@ -138,3 +138,34 @@
     font-size: var(--font-md);
   }
 }
+
+@media (max-width: 480px) {
+  .terms {
+    padding: var(--space-md) 0;
+  }
+  
+  .header {
+    margin-bottom: var(--space-md);
+  }
+  
+  .title {
+    font-size: var(--font-xl);
+  }
+  
+  .tabs {
+    margin-bottom: var(--space-md);
+    gap: var(--space-xs);
+  }
+  
+  .tab {
+    padding: var(--space-xs) var(--space-sm);
+  }
+  
+  .content {
+    padding: var(--space-md);
+  }
+  
+  .article {
+    font-size: var(--font-sm);
+  }
+}

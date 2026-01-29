@@ -271,6 +271,36 @@ img {
     padding: var(--space-sm) var(--space-md);
     font-size: var(--font-sm);
   }
+  
+  .btn-lg {
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--font-sm);
+  }
+}
+
+/* Prevent text selection on touch */
+@media (hover: none) {
+  button, a, .clickable {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Improve touch targets */
+@media (max-width: 768px) {
+  button, a, input, select, textarea {
+    min-height: 44px;
+  }
+  
+  input[type="checkbox"], input[type="radio"] {
+    min-height: auto;
+  }
+}
+
+/* Safe area padding for notched phones */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 /* Spin animation */

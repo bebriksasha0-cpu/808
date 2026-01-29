@@ -679,3 +679,65 @@
   height: 100%;
   object-fit: cover;
 }
+
+/* Additional Mobile Optimizations */
+@media (max-width: 480px) {
+  .upload {
+    padding: var(--space-md) 0;
+  }
+  
+  .header {
+    margin-bottom: var(--space-md);
+  }
+  
+  .title {
+    font-size: var(--font-xl);
+  }
+  
+  .subtitle {
+    font-size: var(--font-xs);
+  }
+  
+  .dropzone {
+    padding: var(--space-lg);
+  }
+  
+  .dropzoneText h3 {
+    font-size: var(--font-md);
+  }
+  
+  .section {
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  
+  .sectionTitle {
+    font-size: var(--font-md);
+    margin-bottom: var(--space-md);
+  }
+  
+  .fileCard {
+    padding: var(--space-md);
+  }
+  
+  .pricingGrid {
+    gap: var(--space-sm);
+  }
+  
+  .priceCard {
+    padding: var(--space-md);
+  }
+  
+  .priceAmount {
+    font-size: var(--font-lg);
+  }
+  
+  .infoGrid {
+    gap: var(--space-sm);
+  }
+  
+  .coverPreview {
+    width: 150px;
+    height: 150px;
+  }
+}
