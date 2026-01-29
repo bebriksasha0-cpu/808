@@ -535,46 +535,105 @@ export default function Profile() {
           ) : activeTab === 'purchases' ? (
             purchases.length > 0 ? (
               <div className={styles.salesList}>
-                {purchases.map(purchase => (
-                  <div key={purchase.id} className={styles.saleRow}>
-                    <div className={styles.beatCover}>
-                      {purchase.coverUrl ? (
-                        <img src={purchase.coverUrl} alt={purchase.beatTitle} />
-                      ) : (
-                        <Music size={20} />
-                      )}
+                {purchases.map(purchase => {
+                  const isPending = purchase.status === 'pending'
+                  const isDelivered = purchase.status === 'delivered' || purchase.status === 'admin_delivered'
+                  const isCancelled = purchase.status === 'cancelled' || purchase.status === 'rejected'
+                  const isDisputed = purchase.status === 'disputed' || purchase.disputeStatus === 'open'
+
+                  return (
+                    <div key={purchase.id} className={`${styles.saleCard} ${isPending ? styles.pendingCard : ''}`}>
+                      <div className={styles.saleHeader}>
+                        <div className={styles.beatCover}>
+                          {purchase.beatCover || purchase.coverUrl ? (
+                            <img src={purchase.beatCover || purchase.coverUrl} alt={purchase.beatTitle} />
+                          ) : (
+                            <Music size={20} />
+                          )}
+                        </div>
+                        <div className={styles.beatInfo}>
+                          <Link to={`/beat/${purchase.beatId}`} className={styles.beatTitle}>
+                            {purchase.beatTitle}
+                          </Link>
+                          <span className={styles.beatMeta}>
+                            {t('from')} {purchase.sellerName} • {purchase.licenseType}
+                          </span>
+                        </div>
+                        <div className={styles.saleStatus}>
+                          {isPending ? (
+                            <span className={styles.statusPending}>
+                              <Clock size={14} />
+                              Ожидание подтверждения
+                            </span>
+                          ) : isDelivered ? (
+                            <span className={styles.statusCompleted}>
+                              <CheckCircle size={14} />
+                              Завершено
+                            </span>
+                          ) : isCancelled ? (
+                            <span className={styles.statusCancelled}>
+                              <X size={14} />
+                              Отменено
+                            </span>
+                          ) : isDisputed ? (
+                            <span className={styles.statusDisputed}>
+                              <AlertTriangle size={14} />
+                              Спор
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                      
+                      <div className={styles.saleActions}>
+                        {/* Pending: show waiting message, no price, no dispute */}
+                        {isPending && (
+                          <span className={styles.waitingNote}>
+                            <Clock size={14} />
+                            Продавец проверяет оплату...
+                          </span>
+                        )}
+
+                        {/* Delivered: show price and download */}
+                        {isDelivered && (
+                          <>
+                            <span className={styles.purchasePriceFinal}>-${(purchase.price || 0).toFixed(2)}</span>
+                            {purchase.beatFileUrl && (
+                              <a 
+                                href={purchase.beatFileUrl}
+                                className={styles.downloadBtn}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Скачать {(purchase.licenseKey || purchase.licenseType || 'MP3').toUpperCase()}
+                              </a>
+                            )}
+                          </>
+                        )}
+
+                        {/* Cancelled: show refund and dispute button */}
+                        {isCancelled && !isDisputed && (
+                          <>
+                            <span className={styles.refundNote}>Возврат средств</span>
+                            <button 
+                              className={styles.disputeBtn}
+                              onClick={() => openDispute(purchase)}
+                            >
+                              Оспорить
+                            </button>
+                          </>
+                        )}
+
+                        {/* Disputed: show status */}
+                        {isDisputed && (
+                          <span className={styles.disputeOpen}>
+                            <AlertTriangle size={14} />
+                            Спор на рассмотрении
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className={styles.beatInfo}>
-                      <Link to={`/beat/${purchase.beatId}`} className={styles.beatTitle}>
-                        {purchase.beatTitle}
-                      </Link>
-                      <span className={styles.beatMeta}>
-                        {t('from')} {purchase.sellerName} • {purchase.licenseType}
-                      </span>
-                    </div>
-                    <div className={styles.saleAmount}>
-                      <span className={styles.purchasePrice}>-${purchase.price.toFixed(2)}</span>
-                      <span className={styles.saleDate}>{formatDate(purchase.createdAt)}</span>
-                    </div>
-                    <div className={styles.purchaseActions}>
-                      {purchase.disputeStatus === 'open' ? (
-                        <span className={styles.disputeOpen}>
-                          <AlertTriangle size={14} />
-                          Спор
-                        </span>
-                      ) : purchase.status !== 'refunded' ? (
-                        <button 
-                          className={styles.disputeBtn}
-                          onClick={() => openDispute(purchase)}
-                        >
-                          Оспорить
-                        </button>
-                      ) : (
-                        <span className={styles.refundedBadge}>Возврат</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               <div className={styles.emptyState}>
