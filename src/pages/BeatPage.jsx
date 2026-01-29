@@ -269,6 +269,18 @@ export default function BeatPage() {
             <p className={styles.terms}>
               {t('digitalGoodsNotice') || 'Digital goods • No refunds after delivery'}
             </p>
+
+            {/* Free MP3 Download */}
+            <div className={styles.freeDownloadSection}>
+              <a 
+                href={getDownloadUrl(beat.audioUrl, `${beat.title}.mp3`)}
+                className={styles.freeDownloadBtn}
+                download={`${beat.title}.mp3`}
+              >
+                <Download size={18} />
+                {t('downloadFreeMP3') || 'Download MP3 Free'}
+              </a>
+            </div>
           </div>
         </div>
 
