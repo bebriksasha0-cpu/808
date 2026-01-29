@@ -11,12 +11,18 @@ const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 
  * @returns {Promise<{bpm: number, key: string}>}
  */
 export async function analyzeAudio(file) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const reader = new FileReader()
     
     reader.onload = async (e) => {
       try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+        
+        // Resume AudioContext if suspended (required by browsers)
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume()
+        }
+        
         const arrayBuffer = e.target.result
         
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)

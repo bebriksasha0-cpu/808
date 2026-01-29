@@ -117,11 +117,19 @@ export default function Upload() {
     setError('')
     try {
       const analysis = await analyzeAudio(mp3File)
+      
+      let updated = false
       if (analysis.bpm) {
         setFormData(prev => ({ ...prev, bpm: String(analysis.bpm) }))
+        updated = true
       }
       if (analysis.key) {
         setFormData(prev => ({ ...prev, key: analysis.key }))
+        updated = true
+      }
+      
+      if (!updated) {
+        setError(t('analysisNoResult') || 'Could not detect BPM/Key. Try entering manually.')
       }
     } catch (err) {
       console.error('Audio analysis failed:', err)
