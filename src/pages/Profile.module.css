@@ -382,6 +382,75 @@
   opacity: 0.8;
 }
 
+/* Following List */
+.followingList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-md);
+}
+
+.producerCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.producerCard:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.producerAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.producerAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.producerAvatar span {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.producerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.producerName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.producerStats {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
 /* Sales List */
 .salesList {
   display: flex;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { User, Settings, Music, Edit2, Loader2, Heart, DollarSign, ShoppingBag, Clock, CheckCircle, AlertTriangle, X, XCircle, Eye, Timer } from 'lucide-react'
+import { User, Settings, Music, Edit2, Loader2, Heart, DollarSign, ShoppingBag, Clock, CheckCircle, AlertTriangle, X, XCircle, Eye, Timer, UserPlus } from 'lucide-react'
 import { collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 
 import { db } from '../config/firebase'
@@ -59,6 +59,7 @@ export default function Profile() {
   const { user } = useAuth()
   const [userBeats, setUserBeats] = useState([])
   const [likedBeats, setLikedBeats] = useState([])
+  const [following, setFollowing] = useState([])
   const [sales, setSales] = useState([])
   const [purchases, setPurchases] = useState([])
   const [wallet, setWallet] = useState({ available: 0, hold: 0 })
@@ -143,6 +144,38 @@ export default function Profile() {
     }
     
     loadLikedBeats()
+  }, [user?.id])
+
+  // Load following (subscriptions)
+  useEffect(() => {
+    const loadFollowing = async () => {
+      if (!user?.id) return
+      
+      try {
+        const followingSnapshot = await getDocs(collection(db, `users/${user.id}/following`))
+        const followingIds = followingSnapshot.docs.map(doc => doc.id)
+        
+        if (followingIds.length === 0) {
+          setFollowing([])
+          return
+        }
+        
+        // Load each producer's data
+        const producersData = []
+        for (const producerId of followingIds) {
+          const producerDoc = await getDoc(doc(db, 'users', producerId))
+          if (producerDoc.exists()) {
+            producersData.push({ id: producerDoc.id, ...producerDoc.data() })
+          }
+        }
+        
+        setFollowing(producersData)
+      } catch (err) {
+        console.error('Error loading following:', err)
+      }
+    }
+    
+    loadFollowing()
   }, [user?.id])
 
   // Load sales and wallet
@@ -392,6 +425,13 @@ export default function Profile() {
           >
             <ShoppingBag size={18} />
             {t('purchases')} ({purchases.length})
+          </button>
+          <button 
+            className={`${styles.tab} ${activeTab === 'following' ? styles.active : ''}`}
+            onClick={() => setActiveTab('following')}
+          >
+            <UserPlus size={18} />
+            {t('mySubscriptions')} ({following.length})
           </button>
         </div>
 
@@ -708,6 +748,41 @@ export default function Profile() {
                 <ShoppingBag size={48} className={styles.emptyIcon} />
                 <h3>{t('noPurchases')}</h3>
                 <p>{t('exploreToBuy')}</p>
+                <Link to="/explore" className="btn btn-primary">
+                  {t('exploreCatalog')}
+                </Link>
+              </div>
+            )
+          ) : activeTab === 'following' ? (
+            following.length > 0 ? (
+              <div className={styles.followingList}>
+                {following.map(producer => (
+                  <Link 
+                    key={producer.id} 
+                    to={`/producer/${producer.id}`}
+                    className={styles.producerCard}
+                  >
+                    <div className={styles.producerAvatar}>
+                      {producer.avatar ? (
+                        <img src={producer.avatar} alt={producer.name} />
+                      ) : (
+                        <span>{producer.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                      )}
+                    </div>
+                    <div className={styles.producerInfo}>
+                      <span className={styles.producerName}>{producer.name}</span>
+                      <span className={styles.producerStats}>
+                        {producer.followersCount || 0} {t('followers')}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.emptyState}>
+                <UserPlus size={48} className={styles.emptyIcon} />
+                <h3>{t('noSubscriptions')}</h3>
+                <p>{t('exploreToFollow')}</p>
                 <Link to="/explore" className="btn btn-primary">
                   {t('exploreCatalog')}
                 </Link>
