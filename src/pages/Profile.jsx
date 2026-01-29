@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { User, Settings, Music, Edit2, Loader2, Heart, DollarSign, ShoppingBag, Clock, CheckCircle, AlertTriangle, X } from 'lucide-react'
+import { User, Settings, Music, Edit2, Loader2, Heart, DollarSign, ShoppingBag, Clock, CheckCircle, AlertTriangle, X, Send, XCircle, Eye } from 'lucide-react'
 import { collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { sendTelegramMessage } from '../utils/telegram'
@@ -25,6 +25,11 @@ export default function Profile() {
   const [disputeContact, setDisputeContact] = useState('')
   const [disputeReason, setDisputeReason] = useState('')
   const [disputeSubmitting, setDisputeSubmitting] = useState(false)
+
+  // Sale action state
+  const [processingOrderId, setProcessingOrderId] = useState(null)
+  const [showProofModal, setShowProofModal] = useState(false)
+  const [selectedSale, setSelectedSale] = useState(null)
 
   // Load user's beats from Firebase
   useEffect(() => {
@@ -227,6 +232,97 @@ export default function Profile() {
     setDisputeSubmitting(false)
   }
 
+  // Seller: View payment proof
+  const viewPaymentProof = (sale) => {
+    setSelectedSale(sale)
+    setShowProofModal(true)
+  }
+
+  // Seller: Confirm payment received
+  const confirmPayment = async (sale) => {
+    if (processingOrderId) return
+    setProcessingOrderId(sale.id)
+    try {
+      await updateDoc(doc(db, 'orders', sale.id), {
+        status: 'approved',
+        paymentConfirmedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      })
+      setSales(prev => prev.map(s => 
+        s.id === sale.id ? { ...s, status: 'approved' } : s
+      ))
+      await sendTelegramMessage(
+        `✅ <b>Оплата подтверждена!</b>\n\n` +
+        `🎵 Бит: ${sale.beatTitle}\n` +
+        `💰 Сумма: $${sale.price}\n` +
+        `👤 Покупатель: ${sale.buyerName}\n` +
+        `👤 Продавец: ${user.name}`
+      )
+    } catch (err) {
+      console.error('Error confirming payment:', err)
+      alert('Ошибка при подтверждении')
+    }
+    setProcessingOrderId(null)
+  }
+
+  // Seller: Reject payment (not received)
+  const rejectPayment = async (sale) => {
+    if (processingOrderId) return
+    const reason = prompt('Причина отклонения (оплата не пришла и т.д.):')
+    if (!reason) return
+    setProcessingOrderId(sale.id)
+    try {
+      await updateDoc(doc(db, 'orders', sale.id), {
+        status: 'rejected',
+        rejectedAt: serverTimestamp(),
+        rejectionReason: reason,
+        updatedAt: serverTimestamp()
+      })
+      setSales(prev => prev.map(s => 
+        s.id === sale.id ? { ...s, status: 'rejected' } : s
+      ))
+      await sendTelegramMessage(
+        `❌ <b>Оплата отклонена!</b>\n\n` +
+        `🎵 Бит: ${sale.beatTitle}\n` +
+        `👤 Покупатель: ${sale.buyerName}\n` +
+        `📝 Причина: ${reason}`
+      )
+    } catch (err) {
+      console.error('Error rejecting payment:', err)
+      alert('Ошибка при отклонении')
+    }
+    setProcessingOrderId(null)
+  }
+
+  // Seller: Deliver beat
+  const deliverBeat = async (sale) => {
+    if (processingOrderId) return
+    if (!confirm(`Отправить бит "${sale.beatTitle}" покупателю ${sale.buyerName}?`)) return
+    setProcessingOrderId(sale.id)
+    try {
+      await updateDoc(doc(db, 'orders', sale.id), {
+        status: 'delivered',
+        deliveredAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      })
+      setSales(prev => prev.map(s => 
+        s.id === sale.id ? { ...s, status: 'delivered' } : s
+      ))
+      await sendTelegramMessage(
+        `📦 <b>Бит отправлен!</b>\n\n` +
+        `🎵 Бит: ${sale.beatTitle}\n` +
+        `💰 Сумма: $${sale.price}\n` +
+        `👤 Покупатель: ${sale.buyerName}\n` +
+        `👤 Продавец: ${user.name}`
+      )
+      alert('✅ Бит отправлен покупателю!')
+    } catch (err) {
+      console.error('Error delivering beat:', err)
+      alert('Ошибка при отправке')
+    }
+    setProcessingOrderId(null)
+  }
+
   return (
     <div className={styles.profile}>
       <div className="container">
@@ -340,61 +436,107 @@ export default function Profile() {
             sales.length > 0 ? (
               <div className={styles.salesList}>
                 {sales.map(sale => (
-                  <div key={sale.id} className={styles.saleRow}>
-                    <div className={styles.beatCover}>
-                      {sale.coverUrl ? (
-                        <img src={sale.coverUrl} alt={sale.beatTitle} />
-                      ) : (
-                        <Music size={20} />
+                  <div key={sale.id} className={styles.saleCard}>
+                    <div className={styles.saleHeader}>
+                      <div className={styles.beatCover}>
+                        {sale.beatCover || sale.coverUrl ? (
+                          <img src={sale.beatCover || sale.coverUrl} alt={sale.beatTitle} />
+                        ) : (
+                          <Music size={20} />
+                        )}
+                      </div>
+                      <div className={styles.beatInfo}>
+                        <Link to={`/beat/${sale.beatId}`} className={styles.beatTitle}>
+                          {sale.beatTitle}
+                        </Link>
+                        <span className={styles.beatMeta}>
+                          {sale.buyerName} • {sale.licenseType} • ${(sale.sellerAmount || sale.price || 0).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className={styles.saleStatus}>
+                        {sale.status === 'pending' ? (
+                          <span className={styles.statusPending}>
+                            <Clock size={14} />
+                            Ожидает проверки
+                          </span>
+                        ) : sale.status === 'approved' ? (
+                          <span className={styles.statusApproved}>
+                            <CheckCircle size={14} />
+                            Оплата подтверждена
+                          </span>
+                        ) : sale.status === 'delivered' || sale.status === 'admin_delivered' ? (
+                          <span className={styles.statusCompleted}>
+                            <CheckCircle size={14} />
+                            Доставлено
+                          </span>
+                        ) : sale.status === 'disputed' ? (
+                          <span className={styles.statusDisputed}>
+                            <AlertTriangle size={14} />
+                            Спор
+                          </span>
+                        ) : sale.status === 'rejected' ? (
+                          <span className={styles.statusRejected}>
+                            <X size={14} />
+                            Отклонено
+                          </span>
+                        ) : (
+                          <span className={styles.statusPending}>
+                            <Clock size={14} />
+                            {sale.status || 'Unknown'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Action buttons based on status */}
+                    <div className={styles.saleActions}>
+                      {sale.status === 'pending' && (
+                        <>
+                          {sale.paymentProof && (
+                            <button 
+                              className={styles.viewProofBtn}
+                              onClick={() => viewPaymentProof(sale)}
+                            >
+                              <Eye size={16} />
+                              Скрин оплаты
+                            </button>
+                          )}
+                          <button 
+                            className={styles.confirmBtn}
+                            onClick={() => confirmPayment(sale)}
+                            disabled={processingOrderId === sale.id}
+                          >
+                            <CheckCircle size={16} />
+                            Деньги пришли
+                          </button>
+                          <button 
+                            className={styles.rejectBtn}
+                            onClick={() => rejectPayment(sale)}
+                            disabled={processingOrderId === sale.id}
+                          >
+                            <XCircle size={16} />
+                            Деньги не пришли
+                          </button>
+                        </>
                       )}
-                    </div>
-                    <div className={styles.beatInfo}>
-                      <Link to={`/beat/${sale.beatId}`} className={styles.beatTitle}>
-                        {sale.beatTitle}
-                      </Link>
-                      <span className={styles.beatMeta}>
-                        {t('soldTo')} {sale.buyerName} • {sale.licenseType}
-                      </span>
-                    </div>
-                    <div className={styles.saleAmount}>
-                      <span className={styles.salePrice}>+${(sale.sellerAmount || sale.price || 0).toFixed(2)}</span>
-                      <span className={styles.saleDate}>{formatDate(sale.createdAt)}</span>
-                    </div>
-                    <div className={styles.saleStatus}>
-                      {sale.status === 'pending' ? (
-                        <span className={styles.statusPending}>
-                          <Clock size={14} />
-                          {t('pending') || 'Pending'}
+                      {sale.status === 'approved' && (
+                        <button 
+                          className={styles.deliverBtn}
+                          onClick={() => deliverBeat(sale)}
+                          disabled={processingOrderId === sale.id}
+                        >
+                          <Send size={16} />
+                          Отправить бит
+                        </button>
+                      )}
+                      {(sale.status === 'delivered' || sale.status === 'admin_delivered') && (
+                        <span className={styles.deliveredNote}>
+                          ✅ Сделка завершена • {formatDate(sale.deliveredAt || sale.createdAt)}
                         </span>
-                      ) : sale.status === 'approved' ? (
-                        <span className={styles.statusApproved}>
-                          <CheckCircle size={14} />
-                          {t('approved') || 'Approved'}
-                        </span>
-                      ) : sale.status === 'hold' ? (
-                        <span className={styles.statusHold}>
-                          <Clock size={14} />
-                          {t('onHold')}
-                        </span>
-                      ) : sale.status === 'delivered' || sale.status === 'admin_delivered' ? (
-                        <span className={styles.statusCompleted}>
-                          <CheckCircle size={14} />
-                          {t('delivered') || 'Delivered'}
-                        </span>
-                      ) : sale.status === 'disputed' ? (
-                        <span className={styles.statusDisputed}>
-                          <AlertTriangle size={14} />
-                          {t('disputed') || 'Disputed'}
-                        </span>
-                      ) : sale.status === 'rejected' ? (
-                        <span className={styles.statusRejected}>
-                          <X size={14} />
-                          {t('rejected') || 'Rejected'}
-                        </span>
-                      ) : (
-                        <span className={styles.statusPending}>
-                          <Clock size={14} />
-                          {sale.status || 'Unknown'}
+                      )}
+                      {sale.status === 'rejected' && (
+                        <span className={styles.rejectedNote}>
+                          ❌ {sale.rejectionReason || 'Оплата не подтверждена'}
                         </span>
                       )}
                     </div>
@@ -559,6 +701,51 @@ export default function Profile() {
                 'Отправить спор'
               )}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Proof Modal */}
+      {showProofModal && selectedSale && (
+        <div className={styles.modalOverlay} onClick={() => setShowProofModal(false)}>
+          <div className={styles.proofModal} onClick={e => e.stopPropagation()}>
+            <button className={styles.modalClose} onClick={() => setShowProofModal(false)}>
+              <X size={20} />
+            </button>
+            
+            <div className={styles.modalHeader}>
+              <Eye size={24} className={styles.modalIcon} />
+              <h2>Скриншот оплаты</h2>
+            </div>
+
+            <div className={styles.proofInfo}>
+              <p><strong>Бит:</strong> {selectedSale.beatTitle}</p>
+              <p><strong>Покупатель:</strong> {selectedSale.buyerName}</p>
+              <p><strong>Сумма:</strong> ${selectedSale.price}</p>
+            </div>
+
+            {selectedSale.paymentProof && (
+              <div className={styles.proofImage}>
+                <img src={selectedSale.paymentProof} alt="Payment proof" />
+              </div>
+            )}
+
+            <div className={styles.proofActions}>
+              <button 
+                className={styles.confirmBtn}
+                onClick={() => { setShowProofModal(false); confirmPayment(selectedSale); }}
+              >
+                <CheckCircle size={16} />
+                Деньги пришли
+              </button>
+              <button 
+                className={styles.rejectBtn}
+                onClick={() => { setShowProofModal(false); rejectPayment(selectedSale); }}
+              >
+                <XCircle size={16} />
+                Деньги не пришли
+              </button>
+            </div>
           </div>
         </div>
       )}
