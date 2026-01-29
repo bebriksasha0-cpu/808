@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Save, Trash2, Loader2, AlertCircle, Image, X } from 'lucide-react'
+import { ArrowLeft, Save, Trash2, Loader2, AlertCircle, Image, X, Plus } from 'lucide-react'
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { uploadToCloudinary } from '../config/cloudinary'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import { styles as beatStyles } from '../data/beats'
 import styles from './Upload.module.css'
 
 export default function EditBeat() {
@@ -21,16 +22,26 @@ export default function EditBeat() {
   const [coverPreview, setCoverPreview] = useState(null)
   const [formData, setFormData] = useState({
     title: '',
-    genre: '',
+    styles: [],
+    customStyle: '',
     bpm: '',
     key: '',
-    mood: '',
     coverUrl: '',
     mp3Price: '',
     wavPrice: '',
     trackoutPrice: '',
     exclusivePrice: ''
   })
+
+  // Toggle style selection
+  const toggleStyle = (style) => {
+    setFormData(prev => ({
+      ...prev,
+      styles: prev.styles.includes(style) 
+        ? prev.styles.filter(s => s !== style)
+        : [...prev.styles, style]
+    }))
+  }
 
   // Load beat data
   useEffect(() => {
@@ -46,10 +57,10 @@ export default function EditBeat() {
           }
           setFormData({
             title: data.title || '',
-            genre: data.genre || '',
+            styles: data.styles || [],
+            customStyle: data.customStyle || '',
             bpm: data.bpm?.toString() || '',
             key: data.key || '',
-            mood: data.mood || '',
             coverUrl: data.coverUrl || '',
             mp3Price: data.prices?.mp3?.toString() || data.price?.toString() || '29.99',
             wavPrice: data.prices?.wav?.toString() || '49.99',
@@ -98,12 +109,16 @@ export default function EditBeat() {
         coverUrl = coverResult.url
       }
 
+      // Build combined genre from styles for backwards compatibility
+      const primaryStyle = formData.styles[0] || formData.customStyle || ''
+
       await updateDoc(doc(db, 'beats', id), {
         title: formData.title,
-        genre: formData.genre,
+        styles: formData.styles,
+        customStyle: formData.customStyle.trim(),
+        genre: primaryStyle,
         bpm: parseInt(formData.bpm) || 0,
         key: formData.key,
-        mood: formData.mood,
         coverUrl: coverUrl || null,
         price: parseFloat(formData.mp3Price) || 29.99,
         prices: {
@@ -216,23 +231,6 @@ export default function EditBeat() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label className={styles.label}>{t('genre')}</label>
-                <select 
-                  className="input"
-                  value={formData.genre}
-                  onChange={e => setFormData({...formData, genre: e.target.value})}
-                >
-                  <option value="">{t('selectGenre')}</option>
-                  <option value="Trap">Trap</option>
-                  <option value="Drill">Drill</option>
-                  <option value="R&B">R&B</option>
-                  <option value="Hip-Hop">Hip-Hop</option>
-                  <option value="Pop">Pop</option>
-                  <option value="Lo-Fi">Lo-Fi</option>
-                </select>
-              </div>
-
-              <div className={styles.inputGroup}>
                 <label className={styles.label}>{t('bpm')}</label>
                 <input 
                   type="number"
@@ -259,23 +257,39 @@ export default function EditBeat() {
                   <option value="Gm">Gm</option>
                 </select>
               </div>
+            </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.label}>{t('mood')}</label>
-                <select 
-                  className="input"
-                  value={formData.mood}
-                  onChange={e => setFormData({...formData, mood: e.target.value})}
-                >
-                  <option value="">{t('selectMood')}</option>
-                  <option value="Dark">Dark</option>
-                  <option value="Chill">Chill</option>
-                  <option value="Energetic">Energetic</option>
-                  <option value="Sad">Sad</option>
-                  <option value="Happy">Happy</option>
-                  <option value="Aggressive">Aggressive</option>
-                </select>
+            {/* Styles Multi-Select */}
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>{t('style')} *</label>
+              <div className={styles.stylesGrid}>
+                {beatStyles.map(style => (
+                  <button
+                    key={style}
+                    type="button"
+                    className={`${styles.styleTag} ${formData.styles.includes(style) ? styles.styleTagActive : ''}`}
+                    onClick={() => toggleStyle(style)}
+                  >
+                    {style}
+                  </button>
+                ))}
               </div>
+              
+              {/* Custom Style Input */}
+              <div className={styles.customStyleRow}>
+                <Plus size={16} />
+                <input
+                  type="text"
+                  className={styles.customStyleInput}
+                  placeholder={t('customStyle')}
+                  value={formData.customStyle}
+                  onChange={e => setFormData({...formData, customStyle: e.target.value.slice(0, 30)})}
+                  maxLength={30}
+                />
+              </div>
+              {formData.customStyle && (
+                <span className={styles.customStyleHint}>{formData.customStyle.length}/30</span>
+              )}
             </div>
           </div>
 

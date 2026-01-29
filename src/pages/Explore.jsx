@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Play, Pause, Search, ChevronDown, Loader2, Heart } from 'lucide-react'
 import { collection, query, orderBy, getDocs, doc, setDoc, deleteDoc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
-import { genres, moods, bpmRanges, priceRanges } from '../data/beats'
+import { genres, bpmRanges, priceRanges } from '../data/beats'
 import { useAudio } from '../context/AudioContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -18,7 +18,6 @@ export default function Explore() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedGenre, setSelectedGenre] = useState('All')
-  const [selectedMood, setSelectedMood] = useState('All')
   const [selectedBpm, setSelectedBpm] = useState('All')
   const [selectedPrice, setSelectedPrice] = useState('All')
 
@@ -79,9 +78,17 @@ export default function Explore() {
   const filteredBeats = useMemo(() => {
     return beats.filter(beat => {
       const matchesSearch = beat.title?.toLowerCase().includes(search.toLowerCase()) ||
-                           beat.producer?.toLowerCase().includes(search.toLowerCase())
-      const matchesGenre = selectedGenre === 'All' || beat.genre === selectedGenre
-      const matchesMood = selectedMood === 'All' || beat.mood === selectedMood
+                           beat.producer?.toLowerCase().includes(search.toLowerCase()) ||
+                           beat.styles?.some(s => s.toLowerCase().includes(search.toLowerCase())) ||
+                           beat.customStyle?.toLowerCase().includes(search.toLowerCase())
+      
+      // Match genre/style - check both legacy genre and new styles array
+      let matchesGenre = selectedGenre === 'All'
+      if (!matchesGenre) {
+        matchesGenre = beat.genre === selectedGenre || 
+                       beat.styles?.includes(selectedGenre) ||
+                       beat.customStyle === selectedGenre
+      }
       
       let matchesBpm = true
       if (selectedBpm !== 'All') {
@@ -96,9 +103,9 @@ export default function Explore() {
         matchesPrice = max ? (beat.price >= min && beat.price <= max) : beat.price >= min
       }
 
-      return matchesSearch && matchesGenre && matchesMood && matchesBpm && matchesPrice
+      return matchesSearch && matchesGenre && matchesBpm && matchesPrice
     })
-  }, [beats, search, selectedGenre, selectedMood, selectedBpm, selectedPrice])
+  }, [beats, search, selectedGenre, selectedBpm, selectedPrice])
 
   return (
     <div className={styles.explore}>
@@ -124,16 +131,10 @@ export default function Explore() {
 
           <div className={styles.filterRow}>
             <FilterSelect 
-              label="Genre" 
+              label={t('style')} 
               options={genres} 
               value={selectedGenre}
               onChange={setSelectedGenre}
-            />
-            <FilterSelect 
-              label="Mood" 
-              options={moods} 
-              value={selectedMood}
-              onChange={setSelectedMood}
             />
             <FilterSelect 
               label="BPM" 
@@ -142,7 +143,7 @@ export default function Explore() {
               onChange={setSelectedBpm}
             />
             <FilterSelect 
-              label="Price" 
+              label={t('price')} 
               options={priceRanges} 
               value={selectedPrice}
               onChange={setSelectedPrice}

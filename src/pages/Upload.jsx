@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, Navigate, Link } from 'react-router-dom'
-import { Upload as UploadIcon, Music, X, AlertCircle, Loader2, Image, FileAudio, Archive, Check, Send } from 'lucide-react'
+import { Upload as UploadIcon, Music, X, AlertCircle, Loader2, Image, FileAudio, Archive, Check, Send, Plus } from 'lucide-react'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { uploadToCloudinary } from '../config/cloudinary'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import { styles as beatStyles } from '../data/beats'
 import styles from './Upload.module.css'
 
 export default function Upload() {
@@ -75,16 +76,26 @@ export default function Upload() {
   
   const [formData, setFormData] = useState({
     title: '',
-    genre: '',
+    styles: [],
+    customStyle: '',
     bpm: '',
     key: '',
-    mood: '',
     tags: [],
     mp3Price: '29.99',
     wavPrice: '49.99',
     trackoutPrice: '99.99',
     exclusivePrice: '499.99'
   })
+
+  // Toggle style selection
+  const toggleStyle = (style) => {
+    setFormData(prev => ({
+      ...prev,
+      styles: prev.styles.includes(style) 
+        ? prev.styles.filter(s => s !== style)
+        : [...prev.styles, style]
+    }))
+  }
 
   // Validate file type
   const validateFileType = (file, allowedExtensions) => {
@@ -237,12 +248,19 @@ export default function Upload() {
 
       // 6. Save to Firestore
       setUploadStatus(t('savingBeat'))
+      
+      // Build combined genre from styles for backwards compatibility
+      const primaryStyle = formData.styles[0] || formData.customStyle || ''
+      
       const beatData = {
         title: formData.title,
-        genre: formData.genre,
+        // New styles system
+        styles: formData.styles,
+        customStyle: formData.customStyle.trim(),
+        // Legacy genre field for backwards compatibility
+        genre: primaryStyle,
         bpm: parseInt(formData.bpm) || 0,
         key: formData.key,
-        mood: formData.mood,
         price: parseFloat(formData.mp3Price) || 29.99,
         prices: {
           mp3: parseFloat(formData.mp3Price) || 29.99,
@@ -513,24 +531,6 @@ export default function Upload() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label className={styles.label}>{t('genre')} *</label>
-                <select 
-                  className="input"
-                  value={formData.genre}
-                  onChange={e => setFormData({...formData, genre: e.target.value})}
-                  required
-                >
-                  <option value="">{t('selectGenre')}</option>
-                  <option value="Trap">Trap</option>
-                  <option value="Drill">Drill</option>
-                  <option value="R&B">R&B</option>
-                  <option value="Hip-Hop">Hip-Hop</option>
-                  <option value="Pop">Pop</option>
-                  <option value="Lo-Fi">Lo-Fi</option>
-                </select>
-              </div>
-
-              <div className={styles.inputGroup}>
                 <label className={styles.label}>{t('bpm')} *</label>
                 <input 
                   type="number"
@@ -559,23 +559,39 @@ export default function Upload() {
                   <option value="Gm">Gm</option>
                 </select>
               </div>
+            </div>
 
-              <div className={styles.inputGroup}>
-                <label className={styles.label}>{t('mood')}</label>
-                <select 
-                  className="input"
-                  value={formData.mood}
-                  onChange={e => setFormData({...formData, mood: e.target.value})}
-                >
-                  <option value="">{t('selectMood')}</option>
-                  <option value="Dark">Dark</option>
-                  <option value="Chill">Chill</option>
-                  <option value="Aggressive">Aggressive</option>
-                  <option value="Energetic">Energetic</option>
-                  <option value="Sad">Sad</option>
-                  <option value="Happy">Happy</option>
-                </select>
+            {/* Styles Multi-Select */}
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>{t('style')} *</label>
+              <div className={styles.stylesGrid}>
+                {beatStyles.map(style => (
+                  <button
+                    key={style}
+                    type="button"
+                    className={`${styles.styleTag} ${formData.styles.includes(style) ? styles.styleTagActive : ''}`}
+                    onClick={() => toggleStyle(style)}
+                  >
+                    {style}
+                  </button>
+                ))}
               </div>
+              
+              {/* Custom Style Input */}
+              <div className={styles.customStyleRow}>
+                <Plus size={16} />
+                <input
+                  type="text"
+                  className={styles.customStyleInput}
+                  placeholder={t('customStyle')}
+                  value={formData.customStyle}
+                  onChange={e => setFormData({...formData, customStyle: e.target.value.slice(0, 30)})}
+                  maxLength={30}
+                />
+              </div>
+              {formData.customStyle && (
+                <span className={styles.customStyleHint}>{formData.customStyle.length}/30</span>
+              )}
             </div>
           </div>
 

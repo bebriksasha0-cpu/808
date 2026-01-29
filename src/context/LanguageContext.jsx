@@ -350,9 +350,10 @@ export const translations = {
     beatInfo: 'Beat Information',
     title: 'Title',
     beatName: 'Beat name',
-    selectGenre: 'Select genre',
+    style: 'Style',
+    selectStyle: 'Select style',
+    customStyle: 'Your own style',
     selectKey: 'Select key',
-    selectMood: 'Select mood',
     pricing: 'Pricing',
     publishBeat: 'Publish Beat',
     howToUpload: 'How to upload?',
@@ -366,22 +367,6 @@ export const translations = {
     willPlayOnSite: 'will play directly on site',
     mayNotPlay: 'may not play directly, link only',
     unknownPlatform: 'Unknown platform',
-    
-    // Genres
-    trap: 'Trap',
-    drill: 'Drill',
-    rnb: 'R&B',
-    hiphop: 'Hip-Hop',
-    pop: 'Pop',
-    lofi: 'Lo-Fi',
-    
-    // Moods
-    dark: 'Dark',
-    chill: 'Chill',
-    aggressive: 'Aggressive',
-    energetic: 'Energetic',
-    sad: 'Sad',
-    happy: 'Happy',
     
     // Licenses
     mp3Lease: 'MP3 Lease',
@@ -865,9 +850,10 @@ export const translations = {
     beatInfo: 'Информация о бите',
     title: 'Название',
     beatName: 'Название бита',
-    selectGenre: 'Выберите жанр',
+    style: 'Стиль',
+    selectStyle: 'Выберите стиль',
+    customStyle: 'Свой стиль',
     selectKey: 'Выберите тональность',
-    selectMood: 'Выберите настроение',
     pricing: 'Цены',
     publishBeat: 'Опубликовать',
     howToUpload: 'Как загрузить?',
@@ -881,22 +867,6 @@ export const translations = {
     willPlayOnSite: 'будет воспроизводиться на сайте',
     mayNotPlay: 'может не воспроизводиться, только ссылка',
     unknownPlatform: 'Неизвестная платформа',
-    
-    // Genres
-    trap: 'Трэп',
-    drill: 'Дрилл',
-    rnb: 'R&B',
-    hiphop: 'Хип-Хоп',
-    pop: 'Поп',
-    lofi: 'Лоу-Фай',
-    
-    // Moods
-    dark: 'Тёмный',
-    chill: 'Спокойный',
-    aggressive: 'Агрессивный',
-    energetic: 'Энергичный',
-    sad: 'Грустный',
-    happy: 'Весёлый',
     
     // Licenses
     mp3Lease: 'MP3 лицензия',
@@ -1359,9 +1329,10 @@ export const translations = {
     beatInfo: 'Інформація про біт',
     title: 'Назва',
     beatName: 'Назва біту',
-    selectGenre: 'Обрати жанр',
+    style: 'Стиль',
+    selectStyle: 'Обрати стиль',
+    customStyle: 'Свій стиль',
     selectKey: 'Обрати тональність',
-    selectMood: 'Обрати настрій',
     pricing: 'Ціни',
     publishBeat: 'Опублікувати біт',
     howToUpload: 'Як завантажити?',
@@ -1375,20 +1346,6 @@ export const translations = {
     willPlayOnSite: 'буде відтворюватися прямо на сайті',
     mayNotPlay: 'може не відтворюватися напряму, тільки посилання',
     unknownPlatform: 'Невідома платформа',
-    
-    // Genres/Moods
-    trap: 'Trap',
-    drill: 'Drill',
-    rnb: 'R&B',
-    hiphop: 'Hip-Hop',
-    pop: 'Pop',
-    lofi: 'Lo-Fi',
-    dark: 'Темний',
-    chill: 'Спокійний',
-    aggressive: 'Агресивний',
-    energetic: 'Енергійний',
-    sad: 'Сумний',
-    happy: 'Веселий',
     
     // License types
     mp3Lease: 'MP3 Ліцензія',
