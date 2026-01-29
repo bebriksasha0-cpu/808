@@ -365,23 +365,18 @@
   font-weight: 600;
 }
 
+.selectedPrice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--accent);
+}
+
 .licenseDesc {
   font-size: var(--font-sm);
   color: var(--text-secondary);
-}
-
-.checkmark {
-  position: absolute;
-  top: var(--space-md);
-  right: var(--space-md);
-  width: 24px;
-  height: 24px;
-  background: var(--accent);
-  color: white;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .buyBtn {

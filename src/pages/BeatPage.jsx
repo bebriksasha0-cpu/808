@@ -213,12 +213,17 @@ export default function BeatPage() {
                           <CheckCircle size={14} />
                           {t('purchased')}
                         </span>
+                      ) : selectedLicense === index ? (
+                        <span className={styles.selectedPrice}>
+                          <Check size={14} />
+                          ${license.price}
+                        </span>
                       ) : (
                         <span className={styles.licensePrice}>${license.price}</span>
                       )}
                     </div>
                     <p className={styles.licenseDesc}>{license.description}</p>
-                    {isPurchased ? (
+                    {isPurchased && (
                       <a 
                         href={getDownloadUrl(purchasedLicenses[license.type]?.beatUrl || beat.audioUrl, `${beat.title}.${getFileExtension(license.type)}`)}
                         className={styles.downloadLicenseBtn}
@@ -227,11 +232,7 @@ export default function BeatPage() {
                         <Download size={14} />
                         {t('download')}
                       </a>
-                    ) : selectedLicense === index ? (
-                      <div className={styles.checkmark}>
-                        <Check size={16} />
-                      </div>
-                    ) : null}
+                    )}
                   </div>
                 )
               })}
