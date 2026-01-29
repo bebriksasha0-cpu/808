@@ -609,22 +609,22 @@ export default function Profile() {
                           {isPending ? (
                             <span className={styles.statusPending}>
                               <Clock size={14} />
-                              Ожидание подтверждения
+                              {t('pendingConfirmation')}
                             </span>
                           ) : isDelivered ? (
                             <span className={styles.statusCompleted}>
                               <CheckCircle size={14} />
-                              Завершено
+                              {t('completed')}
                             </span>
                           ) : isCancelled ? (
                             <span className={styles.statusCancelled}>
                               <X size={14} />
-                              Отменено
+                              {t('cancelled')}
                             </span>
                           ) : isDisputed ? (
                             <span className={styles.statusDisputed}>
                               <AlertTriangle size={14} />
-                              Спор
+                              {t('disputed')}
                             </span>
                           ) : null}
                         </div>
@@ -651,7 +651,7 @@ export default function Profile() {
                               }}
                             />
                             <span className={styles.waitingNote}>
-                              Продавец проверяет оплату...
+                              {t('sellerCheckingPayment')}
                             </span>
                           </>
                         )}
@@ -666,7 +666,7 @@ export default function Profile() {
                                 className={styles.downloadBtn}
                                 download={`${purchase.beatTitle || 'beat'}.${(purchase.licenseKey || 'mp3').toLowerCase()}`}
                               >
-                                Скачать {(purchase.licenseKey || purchase.licenseType || 'MP3').toUpperCase()}
+                                {t('download')} {(purchase.licenseKey || purchase.licenseType || 'MP3').toUpperCase()}
                               </a>
                             )}
                           </>
@@ -675,12 +675,12 @@ export default function Profile() {
                         {/* Cancelled: show refund and dispute button */}
                         {isCancelled && !isDisputed && (
                           <>
-                            <span className={styles.refundNote}>Возврат средств</span>
+                            <span className={styles.refundNote}>{t('refundNote')}</span>
                             <button 
                               className={styles.disputeBtn}
                               onClick={() => openDispute(purchase)}
                             >
-                              Оспорить
+                              {t('disputeButton')}
                             </button>
                           </>
                         )}
@@ -689,7 +689,7 @@ export default function Profile() {
                         {isDisputed && (
                           <span className={styles.disputeOpen}>
                             <AlertTriangle size={14} />
-                            Спор на рассмотрении
+                            {t('disputeUnderReview')}
                           </span>
                         )}
                       </div>

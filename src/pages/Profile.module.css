@@ -396,7 +396,35 @@
 
 .refundNote {
   font-size: var(--font-sm);
-  color: var(--success);
+  color: var(--warning);
+  font-weight: 500;
+}
+
+.disputeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--warning);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.disputeBtn:hover {
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.disputeOpen {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-sm);
+  color: var(--warning);
   font-weight: 500;
 }
 
@@ -435,11 +463,13 @@
 
 .saleActions {
   display: flex;
+  align-items: center;
   gap: var(--space-sm);
   margin-top: var(--space-md);
   padding-top: var(--space-md);
   border-top: 1px solid var(--border);
   flex-wrap: wrap;
+  min-height: 44px;
 }
 
 .viewProofBtn, .confirmBtn, .rejectBtn, .deliverBtn {
