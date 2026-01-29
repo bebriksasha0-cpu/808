@@ -319,7 +319,7 @@
   justify-content: flex-end;
 }
 
-.statusHold, .statusCompleted {
+.statusHold, .statusCompleted, .statusPending, .statusApproved, .statusDisputed, .statusRejected {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -327,6 +327,16 @@
   font-weight: 500;
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-full);
+}
+
+.statusPending {
+  background: rgba(156, 163, 175, 0.1);
+  color: #9ca3af;
+}
+
+.statusApproved {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
 }
 
 .statusHold {
@@ -337,6 +347,16 @@
 .statusCompleted {
   background: rgba(34, 197, 94, 0.1);
   color: var(--success);
+}
+
+.statusDisputed {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+}
+
+.statusRejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
 }
 
 @media (max-width: 768px) {

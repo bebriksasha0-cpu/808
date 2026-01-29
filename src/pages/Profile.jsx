@@ -361,15 +361,40 @@ export default function Profile() {
                       <span className={styles.saleDate}>{formatDate(sale.createdAt)}</span>
                     </div>
                     <div className={styles.saleStatus}>
-                      {sale.status === 'hold' ? (
+                      {sale.status === 'pending' ? (
+                        <span className={styles.statusPending}>
+                          <Clock size={14} />
+                          {t('pending') || 'Pending'}
+                        </span>
+                      ) : sale.status === 'approved' ? (
+                        <span className={styles.statusApproved}>
+                          <CheckCircle size={14} />
+                          {t('approved') || 'Approved'}
+                        </span>
+                      ) : sale.status === 'hold' ? (
                         <span className={styles.statusHold}>
                           <Clock size={14} />
                           {t('onHold')}
                         </span>
-                      ) : (
+                      ) : sale.status === 'delivered' || sale.status === 'admin_delivered' ? (
                         <span className={styles.statusCompleted}>
                           <CheckCircle size={14} />
-                          {t('completed')}
+                          {t('delivered') || 'Delivered'}
+                        </span>
+                      ) : sale.status === 'disputed' ? (
+                        <span className={styles.statusDisputed}>
+                          <AlertTriangle size={14} />
+                          {t('disputed') || 'Disputed'}
+                        </span>
+                      ) : sale.status === 'rejected' ? (
+                        <span className={styles.statusRejected}>
+                          <X size={14} />
+                          {t('rejected') || 'Rejected'}
+                        </span>
+                      ) : (
+                        <span className={styles.statusPending}>
+                          <Clock size={14} />
+                          {sale.status || 'Unknown'}
                         </span>
                       )}
                     </div>
