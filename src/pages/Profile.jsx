@@ -1,12 +1,57 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { User, Settings, Music, Edit2, Loader2, Heart, DollarSign, ShoppingBag, Clock, CheckCircle, AlertTriangle, X, XCircle, Eye } from 'lucide-react'
+import { User, Settings, Music, Edit2, Loader2, Heart, DollarSign, ShoppingBag, Clock, CheckCircle, AlertTriangle, X, XCircle, Eye, Timer } from 'lucide-react'
 import { collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+
 import { db } from '../config/firebase'
 import { sendTelegramMessage } from '../utils/telegram'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
 import styles from './Profile.module.css'
+
+// 10 minutes confirmation timeout
+const CONFIRMATION_TIMEOUT = 10 * 60 * 1000
+
+// Countdown Timer Component for Profile purchases
+function ProfileCountdownTimer({ createdAt, onExpired }) {
+  const [timeLeft, setTimeLeft] = useState(null)
+  
+  useEffect(() => {
+    if (!createdAt) return
+    
+    const orderTime = createdAt?.toMillis?.() || createdAt?.seconds * 1000 || new Date(createdAt).getTime()
+    const expiresAt = orderTime + CONFIRMATION_TIMEOUT
+    
+    const updateTimer = () => {
+      const now = Date.now()
+      const remaining = expiresAt - now
+      
+      if (remaining <= 0) {
+        setTimeLeft(0)
+        onExpired?.()
+      } else {
+        setTimeLeft(remaining)
+      }
+    }
+    
+    updateTimer()
+    const interval = setInterval(updateTimer, 1000)
+    
+    return () => clearInterval(interval)
+  }, [createdAt, onExpired])
+  
+  if (timeLeft === null) return null
+  
+  const minutes = Math.floor(timeLeft / 60000)
+  const seconds = Math.floor((timeLeft % 60000) / 1000)
+  
+  return (
+    <span className={styles.countdown}>
+      <Timer size={14} />
+      {minutes}:{seconds.toString().padStart(2, '0')}
+    </span>
+  )
+}
 
 export default function Profile() {
   const { t } = useLanguage()
@@ -585,12 +630,29 @@ export default function Profile() {
                       </div>
                       
                       <div className={styles.saleActions}>
-                        {/* Pending: show waiting message, no price, no dispute */}
+                        {/* Pending: show countdown timer and waiting message */}
                         {isPending && (
-                          <span className={styles.waitingNote}>
-                            <Clock size={14} />
-                            Продавец проверяет оплату...
-                          </span>
+                          <>
+                            <ProfileCountdownTimer 
+                              createdAt={purchase.createdAt}
+                              onExpired={() => {
+                                // Auto-cancel expired orders
+                                updateDoc(doc(db, 'orders', purchase.id), {
+                                  status: 'cancelled',
+                                  cancelledAt: serverTimestamp(),
+                                  cancelReason: 'Время ожидания истекло',
+                                  updatedAt: serverTimestamp()
+                                }).then(() => {
+                                  setPurchases(prev => prev.map(p => 
+                                    p.id === purchase.id ? { ...p, status: 'cancelled' } : p
+                                  ))
+                                }).catch(console.error)
+                              }}
+                            />
+                            <span className={styles.waitingNote}>
+                              Продавец проверяет оплату...
+                            </span>
+                          </>
                         )}
 
                         {/* Delivered: show price and download */}

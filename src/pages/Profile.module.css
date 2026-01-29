@@ -377,6 +377,18 @@
   color: var(--warning);
 }
 
+.countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--warning);
+  background: rgba(245, 158, 11, 0.1);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-md);
+}
+
 .purchasePriceFinal {
   font-weight: 600;
   color: var(--error);
