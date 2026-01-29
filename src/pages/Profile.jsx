@@ -357,7 +357,7 @@ export default function Profile() {
                       </span>
                     </div>
                     <div className={styles.saleAmount}>
-                      <span className={styles.salePrice}>+${sale.sellerAmount.toFixed(2)}</span>
+                      <span className={styles.salePrice}>+${(sale.sellerAmount || sale.price || 0).toFixed(2)}</span>
                       <span className={styles.saleDate}>{formatDate(sale.createdAt)}</span>
                     </div>
                     <div className={styles.saleStatus}>
