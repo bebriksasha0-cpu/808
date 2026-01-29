@@ -463,22 +463,22 @@ export default function Profile() {
                         {sale.status === 'pending' ? (
                           <span className={styles.statusPending}>
                             <Clock size={14} />
-                            Ожидает проверки
+                            {t('pendingReview')}
                           </span>
                         ) : sale.status === 'delivered' || sale.status === 'admin_delivered' ? (
                           <span className={styles.statusCompleted}>
                             <CheckCircle size={14} />
-                            Доставлено
+                            {t('delivered')}
                           </span>
                         ) : sale.status === 'disputed' ? (
                           <span className={styles.statusDisputed}>
                             <AlertTriangle size={14} />
-                            Спор
+                            {t('disputed')}
                           </span>
                         ) : sale.status === 'cancelled' ? (
                           <span className={styles.statusCancelled}>
                             <X size={14} />
-                            Отменено
+                            {t('cancelled')}
                           </span>
                         ) : (
                           <span className={styles.statusPending}>
@@ -499,7 +499,7 @@ export default function Profile() {
                               onClick={() => viewPaymentProof(sale)}
                             >
                               <Eye size={16} />
-                              Скрин оплаты
+                              {t('viewPaymentProof')}
                             </button>
                           )}
                           <button 
@@ -508,7 +508,7 @@ export default function Profile() {
                             disabled={processingOrderId === sale.id}
                           >
                             <CheckCircle size={16} />
-                            Деньги пришли
+                            {t('moneyReceived')}
                           </button>
                           <button 
                             className={styles.rejectBtn}
@@ -516,18 +516,18 @@ export default function Profile() {
                             disabled={processingOrderId === sale.id}
                           >
                             <XCircle size={16} />
-                            Деньги не пришли
+                            {t('moneyNotReceived')}
                           </button>
                         </>
                       )}
                       {(sale.status === 'delivered' || sale.status === 'admin_delivered') && (
                         <span className={styles.deliveredNote}>
-                          ✅ Сделка завершена • {formatDate(sale.deliveredAt || sale.createdAt)}
+                          ✅ {t('dealCompleted')} • {formatDate(sale.deliveredAt || sale.createdAt)}
                         </span>
                       )}
                       {sale.status === 'cancelled' && (
                         <span className={styles.cancelledNote}>
-                          ⏳ Отменено • Покупатель может открыть спор
+                          ⏳ {t('cancelledBuyerCanDispute')}
                         </span>
                       )}
                     </div>

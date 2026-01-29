@@ -296,6 +296,14 @@ export const translations = {
     delivered: 'Delivered',
     status: 'Status',
     
+    // Seller Sales Tab
+    pendingReview: 'Pending review',
+    viewPaymentProof: 'View proof',
+    moneyReceived: 'Money received',
+    moneyNotReceived: 'Money not received',
+    dealCompleted: 'Deal completed',
+    cancelledBuyerCanDispute: 'Cancelled • Buyer can dispute',
+    
     // Dispute System
     disputeOrder: 'Dispute',
     enterDisputeReason: 'Enter reason for dispute (explain why you believe the payment is invalid):',
@@ -796,6 +804,14 @@ export const translations = {
     rejected: 'Отклонён',
     delivered: 'Доставлен',
     status: 'Статус',
+    
+    // Seller Sales Tab
+    pendingReview: 'Ожидает проверки',
+    viewPaymentProof: 'Скрин оплаты',
+    moneyReceived: 'Деньги пришли',
+    moneyNotReceived: 'Деньги не пришли',
+    dealCompleted: 'Сделка завершена',
+    cancelledBuyerCanDispute: 'Отменено • Покупатель может открыть спор',
     
     // Dispute System
     disputeOrder: 'Спор',
