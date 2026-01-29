@@ -30,12 +30,12 @@ export default function Auth() {
     }
   }, [searchParams])
 
-  // Redirect if already logged in and verified
+  // Redirect if already logged in and verified (but not if showing password modal)
   useEffect(() => {
-    if (user && user.emailVerified) {
+    if (user && user.emailVerified && !showPasswordModal) {
       navigate('/profile')
     }
-  }, [user, navigate])
+  }, [user, navigate, showPasswordModal])
 
   // Poll for email verification when in verify mode
   useEffect(() => {
