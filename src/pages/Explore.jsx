@@ -18,6 +18,7 @@ export default function Explore() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedGenre, setSelectedGenre] = useState('All')
+  const [customStyleFilter, setCustomStyleFilter] = useState('')
   const [selectedBpm, setSelectedBpm] = useState('All')
   const [selectedPrice, setSelectedPrice] = useState('All')
 
@@ -83,11 +84,19 @@ export default function Explore() {
                            beat.customStyle?.toLowerCase().includes(search.toLowerCase())
       
       // Match genre/style - check both legacy genre and new styles array
-      let matchesGenre = selectedGenre === 'All'
+      let matchesGenre = selectedGenre === 'All' && !customStyleFilter
       if (!matchesGenre) {
-        matchesGenre = beat.genre === selectedGenre || 
-                       beat.styles?.includes(selectedGenre) ||
-                       beat.customStyle === selectedGenre
+        // If custom style filter is set, use it
+        if (customStyleFilter) {
+          const customLower = customStyleFilter.toLowerCase()
+          matchesGenre = beat.genre?.toLowerCase().includes(customLower) ||
+                         beat.styles?.some(s => s.toLowerCase().includes(customLower)) ||
+                         beat.customStyle?.toLowerCase().includes(customLower)
+        } else {
+          matchesGenre = beat.genre === selectedGenre || 
+                         beat.styles?.includes(selectedGenre) ||
+                         beat.customStyle === selectedGenre
+        }
       }
       
       let matchesBpm = true
@@ -105,7 +114,7 @@ export default function Explore() {
 
       return matchesSearch && matchesGenre && matchesBpm && matchesPrice
     })
-  }, [beats, search, selectedGenre, selectedBpm, selectedPrice])
+  }, [beats, search, selectedGenre, customStyleFilter, selectedBpm, selectedPrice])
 
   return (
     <div className={styles.explore}>
@@ -134,8 +143,24 @@ export default function Explore() {
               label={t('style')} 
               options={genres} 
               value={selectedGenre}
-              onChange={setSelectedGenre}
+              onChange={(val) => {
+                setSelectedGenre(val)
+                if (val !== 'All') setCustomStyleFilter('')
+              }}
             />
+            <div className={styles.customFilterWrapper}>
+              <input
+                type="text"
+                className={styles.customFilterInput}
+                placeholder={t('customStyle')}
+                value={customStyleFilter}
+                onChange={(e) => {
+                  setCustomStyleFilter(e.target.value)
+                  if (e.target.value) setSelectedGenre('All')
+                }}
+                maxLength={30}
+              />
+            </div>
             <FilterSelect 
               label="BPM" 
               options={bpmRanges} 

@@ -96,6 +96,32 @@
   pointer-events: none;
 }
 
+/* Custom Style Filter */
+.customFilterWrapper {
+  flex: 0 0 auto;
+}
+
+.customFilterInput {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+  width: 140px;
+  transition: all var(--transition-fast);
+}
+
+.customFilterInput:focus {
+  border-color: var(--accent);
+  border-style: solid;
+}
+
+.customFilterInput::placeholder {
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
 /* Beat List */
 .beatList {
   display: flex;
@@ -297,6 +323,13 @@
   
   .select {
     padding: 6px 28px 6px 10px;
+    font-size: 12px;
+    min-height: 32px;
+  }
+  
+  .customFilterInput {
+    width: 100px;
+    padding: 6px 10px;
     font-size: 12px;
     min-height: 32px;
   }
