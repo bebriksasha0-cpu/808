@@ -5,6 +5,7 @@ import { collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc, serv
 
 import { db } from '../config/firebase'
 import { sendTelegramMessage } from '../utils/telegram'
+import { getDownloadUrl } from '../utils/audioUrl'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
 import styles from './Profile.module.css'
@@ -661,10 +662,9 @@ export default function Profile() {
                             <span className={styles.purchasePriceFinal}>-${(purchase.price || 0).toFixed(2)}</span>
                             {purchase.beatFileUrl && (
                               <a 
-                                href={purchase.beatFileUrl}
+                                href={getDownloadUrl(purchase.beatFileUrl)}
                                 className={styles.downloadBtn}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                download={`${purchase.beatTitle || 'beat'}.${(purchase.licenseKey || 'mp3').toLowerCase()}`}
                               >
                                 Скачать {(purchase.licenseKey || purchase.licenseType || 'MP3').toUpperCase()}
                               </a>

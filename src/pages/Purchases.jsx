@@ -300,6 +300,7 @@ export default function Purchases() {
                       <a 
                         href={getDownloadUrl(order.beatFileUrl, `${order.beatTitle}.${getFileExtension(order.licenseKey || order.licenseType)}`)}
                         className={styles.downloadBtn}
+                        download={`${order.beatTitle || 'beat'}.${getFileExtension(order.licenseKey || order.licenseType)}`}
                         title="Скачать"
                       >
                         <Download size={18} />
