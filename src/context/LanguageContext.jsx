@@ -77,6 +77,19 @@ export const translations = {
     passwordMinLength: 'Password must be at least 6 characters',
     passwordsDoNotMatch: 'Passwords do not match',
     usernameTaken: 'This username is already taken',
+    
+    // Auth errors
+    errorEmailInUse: 'This email is already registered. Try signing in instead.',
+    errorInvalidEmail: 'Invalid email address. Please check and try again.',
+    errorWeakPassword: 'Password is too weak. Use at least 6 characters.',
+    errorUserNotFound: 'No account found with this email. Please sign up first.',
+    errorWrongPassword: 'Wrong password. Please try again.',
+    errorInvalidCredential: 'Invalid email or password. Please check your details.',
+    errorTooManyRequests: 'Too many attempts. Please wait a few minutes and try again.',
+    errorPopupClosed: 'Sign-in window was closed. Please try again.',
+    errorNetwork: 'Network error. Check your internet connection.',
+    errorGeneral: 'Something went wrong. Please try again.',
+    
     createPasswordTitle: 'Create a Password',
     createPasswordDesc: 'Set a password so you can also sign in with email',
     confirmPassword: 'Confirm password',
@@ -586,6 +599,19 @@ export const translations = {
     passwordMinLength: 'Пароль минимум 6 символов',
     passwordsDoNotMatch: 'Пароли не совпадают',
     usernameTaken: 'Это имя уже занято',
+    
+    // Auth errors
+    errorEmailInUse: 'Эта почта уже зарегистрирована. Попробуйте войти.',
+    errorInvalidEmail: 'Неверный email. Проверьте и попробуйте снова.',
+    errorWeakPassword: 'Слишком слабый пароль. Минимум 6 символов.',
+    errorUserNotFound: 'Аккаунт с таким email не найден. Сначала зарегистрируйтесь.',
+    errorWrongPassword: 'Неверный пароль. Попробуйте ещё.',
+    errorInvalidCredential: 'Неверный email или пароль. Проверьте данные.',
+    errorTooManyRequests: 'Слишком много попыток. Подождите несколько минут.',
+    errorPopupClosed: 'Окно входа закрыто. Попробуйте снова.',
+    errorNetwork: 'Ошибка сети. Проверьте интернет.',
+    errorGeneral: 'Что-то пошло не так. Попробуйте ещё.',
+    
     createPasswordTitle: 'Создайте пароль',
     createPasswordDesc: 'Установите пароль, чтобы также входить через email',
     confirmPassword: 'Подтвердите пароль',
@@ -1095,6 +1121,19 @@ export const translations = {
     passwordMinLength: 'Пароль мінімум 6 символів',
     passwordsDoNotMatch: 'Паролі не співпадають',
     usernameTaken: 'Це імя вже зайняте',
+    
+    // Auth errors
+    errorEmailInUse: 'Ця пошта вже зареєстрована. Спробуйте увійти.',
+    errorInvalidEmail: 'Невірний email. Перевірте та спробуйте знову.',
+    errorWeakPassword: 'Занадто слабкий пароль. Мінімум 6 символів.',
+    errorUserNotFound: 'Акаунт з цим email не знайдено. Спочатку зареєструйтесь.',
+    errorWrongPassword: 'Невірний пароль. Спробуйте ще.',
+    errorInvalidCredential: 'Невірний email або пароль. Перевірте дані.',
+    errorTooManyRequests: 'Забагато спроб. Зачекайте кілька хвилин.',
+    errorPopupClosed: 'Вікно входу закрито. Спробуйте знову.',
+    errorNetwork: 'Помилка мережі. Перевірте інтернет.',
+    errorGeneral: 'Щось пішло не так. Спробуйте ще.',
+    
     createPasswordTitle: 'Створіть пароль',
     createPasswordDesc: 'Встановіть пароль, щоб також входити через email',
     confirmPassword: 'Підтвердіть пароль',

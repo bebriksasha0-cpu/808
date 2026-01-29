@@ -381,24 +381,28 @@ export function useAuth() {
   return context
 }
 
-// Helper function to get user-friendly error messages
+// Helper function to get error code keys for translation
 function getErrorMessage(code) {
   switch (code) {
     case 'auth/email-already-in-use':
-      return 'This email is already registered'
+      return 'errorEmailInUse'
     case 'auth/invalid-email':
-      return 'Invalid email address'
+      return 'errorInvalidEmail'
     case 'auth/weak-password':
-      return 'Password should be at least 6 characters'
+      return 'errorWeakPassword'
     case 'auth/user-not-found':
-      return 'No account found with this email'
+      return 'errorUserNotFound'
     case 'auth/wrong-password':
-      return 'Incorrect password'
+      return 'errorWrongPassword'
+    case 'auth/invalid-credential':
+      return 'errorInvalidCredential'
     case 'auth/too-many-requests':
-      return 'Too many attempts. Please try again later'
+      return 'errorTooManyRequests'
     case 'auth/popup-closed-by-user':
-      return 'Sign-in popup was closed'
+      return 'errorPopupClosed'
+    case 'auth/network-request-failed':
+      return 'errorNetwork'
     default:
-      return 'An error occurred. Please try again'
+      return 'errorGeneral'
   }
 }

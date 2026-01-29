@@ -77,7 +77,7 @@ export default function Auth() {
           setMode('verify')
           setMessage({ type: 'warning', text: t('verifyEmailFirst') })
         } else {
-          setMessage({ type: 'error', text: result.error })
+          setMessage({ type: 'error', text: t(result.error) || result.error })
         }
       } else if (mode === 'signup') {
         const result = await register({ 
@@ -90,7 +90,7 @@ export default function Auth() {
           setMode('verify')
           setMessage({ type: 'success', text: t('verificationSent') })
         } else {
-          setMessage({ type: 'error', text: result.error })
+          setMessage({ type: 'error', text: t(result.error) || result.error })
         }
       }
     } catch (err) {
@@ -115,7 +115,7 @@ export default function Auth() {
         navigate('/profile')
       }
     } else {
-      setMessage({ type: 'error', text: result.error })
+      setMessage({ type: 'error', text: t(result.error) || result.error })
       setIsLoading(false)
     }
   }
@@ -140,7 +140,7 @@ export default function Auth() {
       setShowPasswordModal(false)
       navigate('/profile')
     } else {
-      setMessage({ type: 'error', text: result.error })
+      setMessage({ type: 'error', text: t(result.error) || result.error })
     }
     setIsLoading(false)
   }
