@@ -118,8 +118,6 @@ export default function PurchaseModal({ beat, license, onClose }) {
         proofBase64 = canvas.toDataURL('image/jpeg', 0.7) // compress to 70% quality JPEG
       }
 
-      console.log('Creating order with buyerId:', user?.id)
-
       const orderData = {
         orderRef,
         beatId: beat.id,
@@ -158,7 +156,6 @@ export default function PurchaseModal({ beat, license, onClose }) {
       }
 
       const docRef = await addDoc(collection(db, 'orders'), orderData)
-      console.log('Order created with ID:', docRef.id)
       setOrderId(orderRef)
       setStep(STEPS.SUCCESS)
 
