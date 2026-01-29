@@ -21,6 +21,12 @@
   }
 }
 
+@media (max-width: 380px) {
+  .main {
+    padding-bottom: 65px;
+  }
+}
+
 /* Banned Screen */
 .bannedScreen {
   min-height: 100vh;

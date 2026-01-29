@@ -169,3 +169,29 @@
     font-size: var(--font-sm);
   }
 }
+@media (max-width: 380px) {
+  .terms {
+    padding: var(--space-sm) 0;
+  }
+  
+  .title {
+    font-size: 18px;
+  }
+  
+  .tab {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+  
+  .content {
+    padding: 12px;
+  }
+  
+  .article {
+    font-size: 12px;
+  }
+  
+  .article h2 {
+    font-size: 14px;
+  }
+}

@@ -615,6 +615,33 @@
   }
 }
 
+@media (max-width: 380px) {
+  .admin {
+    padding: 0.25rem;
+  }
+  
+  .title {
+    font-size: 1rem;
+  }
+  
+  .tab {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.7rem;
+  }
+  
+  .statCard {
+    padding: 0.5rem;
+  }
+  
+  .statValue {
+    font-size: 1rem;
+  }
+  
+  .statLabel {
+    font-size: 0.65rem;
+  }
+}
+
 /* Activity Tab */
 .activityTab {
   padding: 1.5rem;

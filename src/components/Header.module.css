@@ -103,4 +103,28 @@
     width: 36px;
     height: 36px;
   }
+  
+  .container {
+    height: 56px;
+    gap: var(--space-md);
+  }
+  
+  .logo {
+    font-size: var(--font-lg);
+  }
+}
+
+@media (max-width: 380px) {
+  .container {
+    height: 48px;
+  }
+  
+  .logo {
+    font-size: 16px;
+  }
+  
+  .mobileActions .iconBtn {
+    width: 32px;
+    height: 32px;
+  }
 }

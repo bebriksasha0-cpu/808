@@ -244,3 +244,29 @@
     height: 40px;
   }
 }
+@media (max-width: 380px) {
+  .player {
+    height: 52px;
+    padding: 0 var(--space-sm);
+  }
+  
+  .beatCover {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .beatTitle {
+    font-size: 11px;
+    max-width: 100px;
+  }
+  
+  .controlBtn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .playBtn {
+    width: 36px;
+    height: 36px;
+  }
+}

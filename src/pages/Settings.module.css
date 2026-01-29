@@ -243,3 +243,32 @@
     padding: var(--space-md);
   }
 }
+
+@media (max-width: 380px) {
+  .settings {
+    padding: var(--space-sm) 0;
+  }
+  
+  .title {
+    font-size: 18px;
+  }
+  
+  .avatarWrapper {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .label {
+    font-size: 11px;
+  }
+  
+  .input {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  .saveBtn,
+  .logoutBtn {
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+}

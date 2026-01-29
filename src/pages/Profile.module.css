@@ -67,30 +67,49 @@
 
 @media (max-width: 480px) {
   .profile {
-    padding: var(--space-md) 0;
+    padding: var(--space-sm) 0;
   }
   
   .header {
-    padding-bottom: var(--space-md);
-    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    gap: var(--space-sm);
   }
   
   .avatar {
-    width: 80px;
-    height: 80px;
+    width: 64px;
+    height: 64px;
   }
   
   .name {
-    font-size: var(--font-xl);
+    font-size: 18px;
   }
   
   .statsRow {
     justify-content: center;
     flex-wrap: wrap;
+    font-size: 12px;
   }
   
   .actions {
     flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .actions .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .avatar {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .name {
+    font-size: 16px;
   }
 }
 
@@ -110,16 +129,30 @@
 
 @media (max-width: 480px) {
   .statsGrid {
-    gap: var(--space-sm);
-    margin-bottom: var(--space-lg);
+    gap: 8px;
+    margin-bottom: var(--space-md);
   }
   
   .statCard {
-    padding: var(--space-md);
+    padding: 10px 12px;
+    gap: 10px;
   }
   
   .statValue {
-    font-size: var(--font-lg);
+    font-size: 16px;
+  }
+  
+  .statLabel {
+    font-size: 11px;
+  }
+  
+  .statIcon svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .statCurrency {
+    font-size: 16px;
   }
 }
 
@@ -211,6 +244,18 @@
   .tab {
     font-size: var(--font-xs);
     padding: var(--space-sm) 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .tabs {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .tab {
+    font-size: 11px;
+    padding: 8px 0;
   }
 }
 

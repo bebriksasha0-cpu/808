@@ -481,3 +481,40 @@
     padding: var(--space-lg);
   }
 }
+@media (max-width: 380px) {
+  .purchases {
+    padding: var(--space-sm) 0;
+  }
+  
+  .title {
+    font-size: 18px;
+  }
+  
+  .purchaseCard {
+    padding: 8px;
+    grid-template-columns: 40px 1fr auto;
+    gap: 6px;
+  }
+  
+  .cover {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .beatTitle {
+    font-size: 12px;
+  }
+  
+  .seller {
+    font-size: 10px;
+  }
+  
+  .statusBadge {
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+  
+  .proofModal {
+    padding: 12px;
+  }
+}

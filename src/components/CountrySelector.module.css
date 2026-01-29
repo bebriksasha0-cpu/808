@@ -1,5 +1,6 @@
 .selector {
   position: relative;
+  z-index: 100;
 }
 
 .trigger {
@@ -14,6 +15,7 @@
   font-size: var(--font-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .trigger:hover {
@@ -42,36 +44,25 @@
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  width: 280px;
+  min-width: 140px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   z-index: 1000;
   overflow: hidden;
+  animation: fadeIn 0.15s ease;
 }
 
-.search {
-  width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  background: var(--bg-tertiary);
-  border: none;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-primary);
-  font-size: var(--font-sm);
-}
-
-.search::placeholder {
-  color: var(--text-tertiary);
-}
-
-.search:focus {
-  outline: none;
-}
-
-.list {
-  max-height: 300px;
-  overflow-y: auto;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .option {
@@ -87,10 +78,15 @@
   text-align: left;
   cursor: pointer;
   transition: background var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .option:hover {
   background: var(--bg-hover);
+}
+
+.option:active {
+  background: var(--bg-tertiary);
 }
 
 .option.selected {
@@ -107,26 +103,48 @@
 
 /* Mobile Optimizations */
 @media (max-width: 480px) {
-  .dropdown {
-    position: fixed;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    max-height: 60vh;
+  .trigger {
+    padding: 6px 10px;
   }
   
-  .list {
-    max-height: calc(60vh - 50px);
+  .dropdown {
+    min-width: 130px;
   }
   
   .option {
-    padding: var(--space-md);
+    padding: 12px 14px;
   }
   
-  .search {
-    padding: var(--space-md);
+  .flag {
+    font-size: 18px;
+  }
+  
+  .name {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 380px) {
+  .trigger {
+    padding: 5px 8px;
+    gap: 4px;
+  }
+  
+  .code {
+    font-size: 12px;
+  }
+  
+  .chevron {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .dropdown {
+    min-width: 120px;
+  }
+  
+  .option {
+    padding: 10px 12px;
+    gap: 8px;
   }
 }

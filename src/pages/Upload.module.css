@@ -186,6 +186,71 @@
   }
 }
 
+@media (max-width: 480px) {
+  .upload {
+    padding: var(--space-lg) 0;
+  }
+  
+  .container {
+    padding: 0 var(--space-md);
+  }
+  
+  .title {
+    font-size: var(--font-lg);
+    margin-bottom: var(--space-md);
+  }
+  
+  .dropzone {
+    padding: var(--space-xl);
+    margin-bottom: var(--space-lg);
+  }
+  
+  .dropText {
+    font-size: var(--font-sm);
+  }
+  
+  .fileCard {
+    padding: var(--space-md);
+  }
+  
+  .inputGroup label {
+    font-size: var(--font-xs);
+  }
+  
+  .input,
+  .textarea,
+  .select {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+}
+
+@media (max-width: 380px) {
+  .upload {
+    padding: var(--space-md) 0;
+  }
+  
+  .title {
+    font-size: 16px;
+  }
+  
+  .dropzone {
+    padding: var(--space-lg);
+  }
+  
+  .uploadIcon svg {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .dropText {
+    font-size: 12px;
+  }
+  
+  .fileCard {
+    padding: 12px;
+  }
+}
+
 .fileCard {
   background: var(--bg-card);
   border: 1px solid var(--border);

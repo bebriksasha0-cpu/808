@@ -79,6 +79,82 @@
   }
 }
 
+@media (max-width: 480px) {
+  .wallet {
+    padding: var(--space-lg) 0;
+  }
+  
+  .title {
+    font-size: var(--font-xl);
+    margin-bottom: var(--space-md);
+  }
+  
+  .balanceGrid {
+    gap: 10px;
+    margin-bottom: var(--space-lg);
+  }
+  
+  .balanceCard {
+    padding: var(--space-md);
+    gap: var(--space-sm);
+  }
+  
+  .balanceAmount {
+    font-size: var(--font-xl);
+  }
+  
+  .balanceNote {
+    font-size: var(--font-xs);
+  }
+  
+  .successBanner,
+  .errorBanner {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-xs);
+  }
+  
+  .section {
+    margin-top: var(--space-md);
+  }
+  
+  .sectionTitle {
+    font-size: var(--font-md);
+    margin-bottom: var(--space-sm);
+  }
+  
+  .txItem {
+    padding: var(--space-sm);
+    gap: var(--space-sm);
+  }
+  
+  .txIcon {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 380px) {
+  .wallet {
+    padding: var(--space-md) 0;
+  }
+  
+  .title {
+    font-size: 18px;
+  }
+  
+  .balanceCard {
+    padding: 12px;
+  }
+  
+  .balanceAmount {
+    font-size: 18px;
+  }
+  
+  .txItem {
+    flex-wrap: wrap;
+  }
+}
+
 .balanceCard {
   background: var(--bg-card);
   border: 1px solid var(--border);
