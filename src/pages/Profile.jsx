@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { User, Settings, Music, Edit2, Loader2, Heart, DollarSign, ShoppingBag, Clock, CheckCircle, AlertTriangle, X } from 'lucide-react'
+import { User, Settings, Music, Edit2, Loader2, Heart, ShoppingBag, Clock, CheckCircle, AlertTriangle, X } from 'lucide-react'
 import { collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { sendTelegramMessage } from '../utils/telegram'
@@ -13,7 +13,6 @@ export default function Profile() {
   const { user } = useAuth()
   const [userBeats, setUserBeats] = useState([])
   const [likedBeats, setLikedBeats] = useState([])
-  const [sales, setSales] = useState([])
   const [purchases, setPurchases] = useState([])
   const [wallet, setWallet] = useState({ available: 0, hold: 0 })
   const [loading, setLoading] = useState(true)
@@ -94,9 +93,9 @@ export default function Profile() {
     loadLikedBeats()
   }, [user?.id])
 
-  // Load sales and wallet
+  // Load wallet and purchases
   useEffect(() => {
-    const loadSalesData = async () => {
+    const loadWalletAndPurchases = async () => {
       if (!user?.id) return
 
       try {
@@ -105,23 +104,6 @@ export default function Profile() {
         if (walletDoc.exists()) {
           setWallet(walletDoc.data())
         }
-
-        // Load sales (orders where user is seller)
-        const salesQuery = query(
-          collection(db, 'orders'),
-          where('sellerId', '==', user.id)
-        )
-        const salesSnapshot = await getDocs(salesQuery)
-        const salesData = salesSnapshot.docs.map(d => ({
-          id: d.id,
-          ...d.data()
-        }))
-        salesData.sort((a, b) => {
-          const aTime = a.createdAt?.toMillis?.() || 0
-          const bTime = b.createdAt?.toMillis?.() || 0
-          return bTime - aTime
-        })
-        setSales(salesData)
 
         // Load purchases (orders where user is buyer)
         const purchasesQuery = query(
@@ -140,11 +122,11 @@ export default function Profile() {
         })
         setPurchases(purchasesData)
       } catch (err) {
-        console.error('Error loading sales:', err)
+        console.error('Error loading purchases:', err)
       }
     }
 
-    loadSalesData()
+    loadWalletAndPurchases()
   }, [user?.id])
 
   const formatDate = (timestamp) => {
@@ -244,8 +226,6 @@ export default function Profile() {
             <h1 className={styles.name}>{user?.name || 'Producer'}</h1>
             <div className={styles.statsRow}>
               <span>{userBeats.length} {t('beats')}</span>
-              <span>•</span>
-              <span>{sales.length} {t('salesCount')}</span>
             </div>
           </div>
 
@@ -269,13 +249,6 @@ export default function Profile() {
           >
             <Music size={18} />
             {t('myBeats')} ({userBeats.length})
-          </button>
-          <button 
-            className={`${styles.tab} ${activeTab === 'sales' ? styles.active : ''}`}
-            onClick={() => setActiveTab('sales')}
-          >
-            <DollarSign size={18} />
-            {t('sales')} ({sales.length})
           </button>
           <button 
             className={`${styles.tab} ${activeTab === 'liked' ? styles.active : ''}`}
@@ -331,56 +304,6 @@ export default function Profile() {
                 <Music size={48} className={styles.emptyIcon} />
                 <h3>{t('noBeatsYet')}</h3>
                 <p>{t('uploadFirstBeat')}</p>
-                <Link to="/upload" className="btn btn-primary">
-                  {t('uploadBeat')}
-                </Link>
-              </div>
-            )
-          ) : activeTab === 'sales' ? (
-            sales.length > 0 ? (
-              <div className={styles.salesList}>
-                {sales.map(sale => (
-                  <div key={sale.id} className={styles.saleRow}>
-                    <div className={styles.beatCover}>
-                      {sale.coverUrl ? (
-                        <img src={sale.coverUrl} alt={sale.beatTitle} />
-                      ) : (
-                        <Music size={20} />
-                      )}
-                    </div>
-                    <div className={styles.beatInfo}>
-                      <Link to={`/beat/${sale.beatId}`} className={styles.beatTitle}>
-                        {sale.beatTitle}
-                      </Link>
-                      <span className={styles.beatMeta}>
-                        {t('soldTo')} {sale.buyerName} • {sale.licenseType}
-                      </span>
-                    </div>
-                    <div className={styles.saleAmount}>
-                      <span className={styles.salePrice}>+${sale.sellerAmount.toFixed(2)}</span>
-                      <span className={styles.saleDate}>{formatDate(sale.createdAt)}</span>
-                    </div>
-                    <div className={styles.saleStatus}>
-                      {sale.status === 'hold' ? (
-                        <span className={styles.statusHold}>
-                          <Clock size={14} />
-                          {t('onHold')}
-                        </span>
-                      ) : (
-                        <span className={styles.statusCompleted}>
-                          <CheckCircle size={14} />
-                          {t('completed')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className={styles.emptyState}>
-                <DollarSign size={48} className={styles.emptyIcon} />
-                <h3>{t('noSalesYet')}</h3>
-                <p>{t('uploadBeatsToSell')}</p>
                 <Link to="/upload" className="btn btn-primary">
                   {t('uploadBeat')}
                 </Link>
