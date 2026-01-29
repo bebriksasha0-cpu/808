@@ -672,17 +672,23 @@ export default function Profile() {
                           </>
                         )}
 
-                        {/* Cancelled: show refund and dispute button */}
+                        {/* Cancelled: show no refund message and dispute button */}
                         {isCancelled && !isDisputed && (
-                          <>
-                            <span className={styles.refundNote}>{t('refundNote')}</span>
+                          <div className={styles.cancelledInfo}>
+                            <div className={styles.noRefundMessage}>
+                              <AlertTriangle size={16} />
+                              <div>
+                                <strong>{t('noRefundTitle')}</strong>
+                                <p>{t('noRefundDesc')}</p>
+                              </div>
+                            </div>
                             <button 
                               className={styles.disputeBtn}
                               onClick={() => openDispute(purchase)}
                             >
                               {t('disputeButton')}
                             </button>
-                          </>
+                          </div>
                         )}
 
                         {/* Disputed: show status */}
