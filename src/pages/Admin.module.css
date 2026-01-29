@@ -1280,3 +1280,56 @@
   background: var(--bg-secondary);
   border-radius: 6px;
 }
+
+/* Quick action buttons on order card */
+.quickActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.quickBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quickBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quickDeliver {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.quickDeliver:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.3);
+}
+
+.quickRefund {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.quickRefund:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+/* Cancelled status style */
+.cancelled {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.refunded {
+  background: rgba(156, 163, 175, 0.1);
+  color: #9ca3af;
+}

@@ -452,6 +452,47 @@ export default function Admin() {
     setProcessingOrder(null)
   }
 
+  // Admin: Refund/Cancel order (payment was not received or invalid)
+  const handleAdminRefund = async (order) => {
+    const adminNotes = prompt('Причина отмены заказа:')
+    if (!adminNotes || adminNotes.trim() === '') return
+    
+    if (!confirm(`Отменить заказ "${order.beatTitle}"?\n\nЭто пометит заказ как отменённый. Покупатель не получит бит.\n\nПричина: ${adminNotes}`)) return
+    
+    setProcessingOrder(order.id)
+    try {
+      await updateDoc(doc(db, 'orders', order.id), {
+        status: 'refunded',
+        adminRefundedAt: serverTimestamp(),
+        adminRefundedBy: user.displayName || user.email,
+        adminNotes: adminNotes.trim(),
+        updatedAt: serverTimestamp(),
+        actionLog: arrayUnion({
+          action: 'admin_refunded',
+          by: user.displayName || user.email,
+          byId: user.id,
+          at: new Date().toISOString(),
+          note: `Admin cancelled/refunded: ${adminNotes.trim()}`
+        })
+      })
+      
+      setOrders(prev => prev.map(o => 
+        o.id === order.id ? { 
+          ...o, 
+          status: 'refunded',
+          adminNotes: adminNotes.trim() 
+        } : o
+      ))
+      setStats(prev => ({ ...prev, disputedOrders: Math.max(0, prev.disputedOrders - 1) }))
+      
+      alert(`✅ Заказ отменён. Покупатель уведомлён.`)
+    } catch (err) {
+      console.error('Error refunding order:', err)
+      alert('Ошибка: ' + err.message)
+    }
+    setProcessingOrder(null)
+  }
+
   const getOrderStatusLabel = (status) => {
     switch (status) {
       case 'pending': return 'Pending'
@@ -459,6 +500,8 @@ export default function Admin() {
       case 'rejected': return 'Rejected'
       case 'delivered': return 'Delivered'
       case 'disputed': return 'Disputed'
+      case 'cancelled': return 'Cancelled'
+      case 'refunded': return 'Refunded'
       case 'admin_delivered': return 'Admin Delivered'
       default: return status
     }
@@ -1185,12 +1228,35 @@ export default function Admin() {
                                 {order.status === 'approved' && <CheckCircle size={14} />}
                                 {order.status === 'delivered' && <Send size={14} />}
                                 {order.status === 'rejected' && <XCircle size={14} />}
+                                {order.status === 'cancelled' && <XCircle size={14} />}
+                                {order.status === 'refunded' && <Undo2 size={14} />}
                                 {order.status === 'admin_delivered' && <Shield size={14} />}
                                 {getOrderStatusLabel(order.status)}
                               </span>
                               <span className={styles.orderPrice}>${order.price?.toFixed(2)}</span>
                             </div>
                           </div>
+                          {/* Quick Actions for disputed/cancelled orders */}
+                          {(order.status === 'pending' || order.status === 'disputed' || order.status === 'cancelled') && (
+                            <div className={styles.quickActions}>
+                              <button 
+                                className={`${styles.quickBtn} ${styles.quickDeliver}`}
+                                onClick={(e) => { e.stopPropagation(); handleAdminDeliver(order) }}
+                                disabled={processingOrder === order.id}
+                                title="Выдать бит покупателю"
+                              >
+                                <Send size={16} />
+                              </button>
+                              <button 
+                                className={`${styles.quickBtn} ${styles.quickRefund}`}
+                                onClick={(e) => { e.stopPropagation(); handleAdminRefund(order) }}
+                                disabled={processingOrder === order.id}
+                                title="Отменить и вернуть (если оплата не прошла)"
+                              >
+                                <Undo2 size={16} />
+                              </button>
+                            </div>
+                          )}
                           <button className={styles.expandBtn}>
                             {expandedOrder === order.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                           </button>
@@ -1312,7 +1378,7 @@ export default function Admin() {
                             )}
 
                             {/* Admin Actions */}
-                            {(order.status === 'pending' || order.status === 'disputed') && (
+                            {(order.status === 'pending' || order.status === 'disputed' || order.status === 'cancelled') && (
                               <div className={styles.adminActions}>
                                 <h5><Shield size={16} /> {t('adminActions') || 'Admin Actions'}</h5>
                                 <div className={styles.actionButtons}>
@@ -1322,7 +1388,15 @@ export default function Admin() {
                                     disabled={processingOrder === order.id}
                                   >
                                     <Send size={16} />
-                                    {t('forceDeliver') || 'Force Deliver to Buyer'}
+                                    {t('forceDeliver') || 'Выдать бит покупателю'}
+                                  </button>
+                                  <button 
+                                    className={`btn btn-warning ${styles.adminBtn}`}
+                                    onClick={() => handleAdminRefund(order)}
+                                    disabled={processingOrder === order.id}
+                                  >
+                                    <Undo2 size={16} />
+                                    Отменить заказ
                                   </button>
                                   <button 
                                     className={`btn btn-success ${styles.adminBtn}`}
@@ -1330,7 +1404,7 @@ export default function Admin() {
                                     disabled={processingOrder === order.id}
                                   >
                                     <CheckCircle size={16} />
-                                    {t('approveOrder') || 'Approve Order'}
+                                    {t('approveOrder') || 'Подтвердить заказ'}
                                   </button>
                                   <button 
                                     className={`btn btn-error ${styles.adminBtn}`}
@@ -1338,12 +1412,12 @@ export default function Admin() {
                                     disabled={processingOrder === order.id}
                                   >
                                     <XCircle size={16} />
-                                    {t('rejectOrder') || 'Reject Order'}
+                                    {t('rejectOrder') || 'Отклонить'}
                                   </button>
                                 </div>
                                 <p className={styles.adminNote}>
                                   <AlertTriangle size={14} />
-                                  {t('adminActionNote') || 'All admin actions are logged and visible to both buyer and seller.'}
+                                  {t('adminActionNote') || 'Все действия логируются и видны покупателю и продавцу.'}
                                 </p>
                               </div>
                             )}
