@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Mail, Lock, User, ArrowLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { Mail, Lock, User, ArrowLeft, Loader2, CheckCircle, AlertCircle, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import styles from './Auth.module.css'
@@ -8,11 +8,14 @@ import styles from './Auth.module.css'
 export default function Auth() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { login, register, loginWithGoogle, resendVerificationEmail, checkEmailVerified, user } = useAuth()
+  const { login, register, loginWithGoogle, linkPassword, resendVerificationEmail, checkEmailVerified, user } = useAuth()
   const { t } = useLanguage()
   const [mode, setMode] = useState('signin') // signin, signup, forgot, verify, verified
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -104,12 +107,47 @@ export default function Auth() {
     const result = await loginWithGoogle()
     
     if (result.success) {
+      // If new user, show password creation modal
+      if (result.isNewUser) {
+        setShowPasswordModal(true)
+        setIsLoading(false)
+      } else {
+        navigate('/profile')
+      }
+    } else {
+      setMessage({ type: 'error', text: result.error })
+      setIsLoading(false)
+    }
+  }
+
+  const handleCreatePassword = async (e) => {
+    e.preventDefault()
+    
+    if (newPassword.length < 6) {
+      setMessage({ type: 'error', text: t('passwordMinLength') })
+      return
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setMessage({ type: 'error', text: t('passwordsDoNotMatch') })
+      return
+    }
+    
+    setIsLoading(true)
+    const result = await linkPassword(newPassword)
+    
+    if (result.success) {
+      setShowPasswordModal(false)
       navigate('/profile')
     } else {
       setMessage({ type: 'error', text: result.error })
     }
-    
     setIsLoading(false)
+  }
+
+  const handleSkipPassword = () => {
+    setShowPasswordModal(false)
+    navigate('/profile')
   }
 
   const handleResendVerification = async () => {
@@ -364,6 +402,69 @@ export default function Auth() {
           </div>
         )}
       </div>
+
+      {/* Password Creation Modal for Google Sign-in */}
+      {showPasswordModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <button className={styles.modalClose} onClick={handleSkipPassword}>
+              <X size={20} />
+            </button>
+            
+            <h2 className={styles.modalTitle}>{t('createPasswordTitle')}</h2>
+            <p className={styles.modalSubtitle}>{t('createPasswordDesc')}</p>
+            
+            {message.text && (
+              <div className={`${styles.message} ${styles[message.type]}`}>
+                {message.type === 'error' && <AlertCircle size={18} />}
+                <span>{message.text}</span>
+              </div>
+            )}
+            
+            <form onSubmit={handleCreatePassword}>
+              <div className={styles.inputGroup}>
+                <Lock size={18} className={styles.inputIcon} />
+                <input 
+                  type="password"
+                  placeholder={t('password')}
+                  className={styles.input}
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <Lock size={18} className={styles.inputIcon} />
+                <input 
+                  type="password"
+                  placeholder={t('confirmPassword')}
+                  className={styles.input}
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+              
+              <p className={styles.passwordHint}>{t('passwordMinLength')}</p>
+              
+              <button 
+                type="submit" 
+                className={`btn btn-primary btn-lg ${styles.submitBtn}`}
+                disabled={isLoading}
+              >
+                {isLoading ? <Loader2 size={18} className={styles.spinner} /> : t('savePassword')}
+              </button>
+            </form>
+            
+            <button className={styles.skipBtn} onClick={handleSkipPassword}>
+              {t('skipForNow')}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

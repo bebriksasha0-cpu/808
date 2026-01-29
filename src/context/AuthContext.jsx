@@ -6,7 +6,9 @@ import {
   onAuthStateChanged,
   sendEmailVerification,
   GoogleAuthProvider,
+  EmailAuthProvider,
   signInWithPopup,
+  linkWithCredential,
   reload
 } from 'firebase/auth'
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
@@ -182,11 +184,39 @@ export function AuthProvider({ children }) {
     try {
       setError(null)
       const provider = new GoogleAuthProvider()
-      await signInWithPopup(auth, provider)
-      return { success: true }
+      const result = await signInWithPopup(auth, provider)
+      
+      // Check if this is a new user (first time sign in)
+      const isNewUser = result._tokenResponse?.isNewUser || false
+      
+      return { success: true, isNewUser }
     } catch (err) {
       console.error('Google login error:', err)
       setError(err.message)
+      return { success: false, error: getErrorMessage(err.code) }
+    }
+  }
+
+  // Link password to Google account
+  const linkPassword = async (password) => {
+    try {
+      if (!auth.currentUser || !auth.currentUser.email) {
+        return { success: false, error: 'No user logged in' }
+      }
+      
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email,
+        password
+      )
+      
+      await linkWithCredential(auth.currentUser, credential)
+      return { success: true }
+    } catch (err) {
+      console.error('Link password error:', err)
+      // If already linked, just return success
+      if (err.code === 'auth/provider-already-linked') {
+        return { success: true }
+      }
       return { success: false, error: getErrorMessage(err.code) }
     }
   }
@@ -303,6 +333,7 @@ export function AuthProvider({ children }) {
       logout, 
       register, 
       loginWithGoogle,
+      linkPassword,
       resendVerificationEmail,
       checkEmailVerified,
       updateProfile, 
