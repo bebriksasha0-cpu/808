@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Music, Download, Clock, CheckCircle, AlertTriangle, Loader2, ShoppingBag, Flag, XCircle } from 'lucide-react'
 import { collection, query, where, getDocs, doc, updateDoc, addDoc, serverTimestamp, arrayUnion } from 'firebase/firestore'
@@ -8,6 +8,9 @@ import { useAuth } from '../context/AuthContext'
 import { getDownloadUrl } from '../utils/audioUrl'
 import { notifyDispute } from '../utils/telegram'
 import styles from './Purchases.module.css'
+
+// Confirmation timeout in milliseconds (10 minutes)
+const CONFIRMATION_TIMEOUT = 10 * 60 * 1000
 
 // Helper to get file extension based on license type
 const getFileExtension = (licenseType) => {
@@ -29,6 +32,50 @@ const ORDER_STATUS = {
   ADMIN_DELIVERED: 'admin_delivered'
 }
 
+// Timer component for pending orders
+function CountdownTimer({ createdAt, onExpired, orderId }) {
+  const [timeLeft, setTimeLeft] = useState(null)
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const created = createdAt instanceof Date ? createdAt : createdAt?.toDate?.() || new Date()
+      const expiresAt = created.getTime() + CONFIRMATION_TIMEOUT
+      const now = Date.now()
+      const remaining = expiresAt - now
+      
+      if (remaining <= 0) {
+        onExpired(orderId)
+        return 0
+      }
+      return remaining
+    }
+
+    setTimeLeft(calculateTimeLeft())
+
+    const timer = setInterval(() => {
+      const remaining = calculateTimeLeft()
+      setTimeLeft(remaining)
+      if (remaining <= 0) {
+        clearInterval(timer)
+      }
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [createdAt, onExpired, orderId])
+
+  if (timeLeft === null) return null
+
+  const minutes = Math.floor(timeLeft / 60000)
+  const seconds = Math.floor((timeLeft % 60000) / 1000)
+
+  return (
+    <div className={styles.countdown}>
+      <Clock size={16} />
+      <span>Продавец должен подтвердить: {minutes}:{seconds.toString().padStart(2, '0')}</span>
+    </div>
+  )
+}
+
 export default function Purchases() {
   const { t } = useLanguage()
   const { user } = useAuth()
@@ -40,33 +87,23 @@ export default function Purchases() {
 
   useEffect(() => {
     const loadPurchases = async () => {
-      console.log('User object:', user)
-      console.log('User ID:', user?.id)
-      
       if (!user?.id) {
-        console.log('No user id, skipping purchases load')
         setLoading(false)
         return
       }
 
-      console.log('Loading purchases for user:', user.id)
-      
       try {
-        // Load from orders collection where user is the buyer
         const ordersQuery = query(
           collection(db, 'orders'),
           where('buyerId', '==', user.id)
         )
         const snapshot = await getDocs(ordersQuery)
-        console.log('Found orders:', snapshot.docs.length)
-        console.log('Orders data:', snapshot.docs.map(d => ({ id: d.id, buyerId: d.data().buyerId })))
         
         const ordersData = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
           createdAt: doc.data().createdAt?.toDate?.() || new Date()
         }))
-        // Sort by date on client side
         ordersData.sort((a, b) => b.createdAt - a.createdAt)
         setPurchases(ordersData)
       } catch (err) {
@@ -77,6 +114,27 @@ export default function Purchases() {
 
     loadPurchases()
   }, [user?.id])
+
+  // Handle timer expiration - auto-cancel order
+  const handleTimerExpired = useCallback(async (orderId) => {
+    const order = purchases.find(p => p.id === orderId)
+    if (!order || order.status !== ORDER_STATUS.PENDING) return
+
+    try {
+      await updateDoc(doc(db, 'orders', orderId), {
+        status: ORDER_STATUS.CANCELLED,
+        cancelledAt: serverTimestamp(),
+        cancelReason: 'Время подтверждения истекло',
+        updatedAt: serverTimestamp()
+      })
+
+      setPurchases(prev => prev.map(p => 
+        p.id === orderId ? { ...p, status: ORDER_STATUS.CANCELLED } : p
+      ))
+    } catch (err) {
+      console.error('Error auto-cancelling order:', err)
+    }
+  }, [purchases])
 
   const formatDate = (date) => {
     if (!date) return ''
@@ -90,10 +148,8 @@ export default function Purchases() {
 
     setSubmitting(true)
     try {
-      // Find the order
       const order = purchases.find(p => p.id === orderId)
       
-      // Update order status
       await updateDoc(doc(db, 'orders', orderId), {
         status: ORDER_STATUS.DISPUTED,
         disputeReason: disputeReason,
@@ -108,7 +164,6 @@ export default function Purchases() {
         })
       })
 
-      // Create dispute record
       const disputeData = {
         orderId: orderId,
         beatId: order?.beatId,
@@ -125,11 +180,8 @@ export default function Purchases() {
       }
       
       await addDoc(collection(db, 'disputes'), disputeData)
-
-      // Send Telegram notification
       await notifyDispute(disputeData)
 
-      // Update local state
       setPurchases(prev => prev.map(p => 
         p.id === orderId ? { ...p, status: ORDER_STATUS.DISPUTED } : p
       ))
@@ -139,48 +191,6 @@ export default function Purchases() {
       console.error('Error creating dispute:', err)
     }
     setSubmitting(false)
-  }
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case ORDER_STATUS.PENDING:
-        return (
-          <span className={`${styles.status} ${styles.pending}`}>
-            <Clock size={14} />
-            {t('awaitingConfirmation') || 'Ожидание подтверждения'}
-          </span>
-        )
-      case ORDER_STATUS.DELIVERED:
-      case ORDER_STATUS.ADMIN_DELIVERED:
-        return (
-          <span className={`${styles.status} ${styles.completed}`}>
-            <CheckCircle size={14} />
-            {t('delivered') || 'Доставлено'}
-          </span>
-        )
-      case ORDER_STATUS.CANCELLED:
-      case ORDER_STATUS.REJECTED:
-        return (
-          <span className={`${styles.status} ${styles.cancelled}`}>
-            <XCircle size={14} />
-            {t('cancelled') || 'Отменено'}
-          </span>
-        )
-      case ORDER_STATUS.DISPUTED:
-        return (
-          <span className={`${styles.status} ${styles.disputed}`}>
-            <AlertTriangle size={14} />
-            {t('disputed') || 'Спор'}
-          </span>
-        )
-      default:
-        return (
-          <span className={`${styles.status} ${styles.pending}`}>
-            <Clock size={14} />
-            {status || t('pending')}
-          </span>
-        )
-    }
   }
 
   if (loading) {
@@ -198,87 +208,135 @@ export default function Purchases() {
   return (
     <div className={styles.purchases}>
       <div className="container">
-        <h1 className={styles.title}>{t('myPurchases')}</h1>
+        <h1 className={styles.title}>{t('myPurchases') || 'Мои покупки'}</h1>
 
         {purchases.length > 0 ? (
           <div className={styles.purchasesList}>
-            {purchases.map(order => (
-              <div key={order.id} className={styles.purchaseCard}>
-                <div className={styles.cover}>
-                  {order.beatCover ? (
-                    <img src={order.beatCover} alt={order.beatTitle} />
-                  ) : (
-                    <Music size={24} />
-                  )}
-                </div>
+            {purchases.map(order => {
+              const isPending = order.status === ORDER_STATUS.PENDING
+              const isDelivered = order.status === ORDER_STATUS.DELIVERED || order.status === ORDER_STATUS.ADMIN_DELIVERED
+              const isCancelled = order.status === ORDER_STATUS.CANCELLED || order.status === ORDER_STATUS.REJECTED
+              const isDisputed = order.status === ORDER_STATUS.DISPUTED
 
-                <div className={styles.info}>
-                  <Link to={`/beat/${order.beatId}`} className={styles.beatTitle}>
-                    {order.beatTitle}
-                  </Link>
-                  <span className={styles.seller}>
-                    {t('by')} {order.sellerName}
-                  </span>
-                  <span className={styles.orderRef}>#{order.orderRef}</span>
-                </div>
+              return (
+                <div key={order.id} className={`${styles.purchaseCard} ${isPending ? styles.pendingCard : ''}`}>
+                  <div className={styles.cover}>
+                    {order.beatCover ? (
+                      <img src={order.beatCover} alt={order.beatTitle} />
+                    ) : (
+                      <Music size={24} />
+                    )}
+                  </div>
 
-                <div className={styles.license}>
-                  <span className={styles.licenseType}>{order.licenseType}</span>
-                </div>
-
-                <div className={styles.meta}>
-                  <span className={styles.price}>${order.price?.toFixed(2)}</span>
-                  <span className={styles.date}>{formatDate(order.createdAt)}</span>
-                </div>
-
-                <div className={styles.statusCol}>
-                  {getStatusBadge(order.status)}
-                </div>
-
-                <div className={styles.actions}>
-                  {/* Download available only for delivered orders */}
-                  {(order.status === ORDER_STATUS.DELIVERED || order.status === ORDER_STATUS.ADMIN_DELIVERED) && order.beatFileUrl && (
-                    <a 
-                      href={getDownloadUrl(order.beatFileUrl, `${order.beatTitle}.${getFileExtension(order.licenseKey || order.licenseType)}`)}
-                      className={styles.downloadBtn}
-                      title={t('download') || 'Скачать'}
-                    >
-                      <Download size={18} />
-                      <span>Скачать {(order.licenseKey || order.licenseType || 'MP3').toUpperCase()}</span>
-                    </a>
-                  )}
-                  
-                  {/* Dispute button - only for cancelled orders */}
-                  {(order.status === ORDER_STATUS.CANCELLED || order.status === ORDER_STATUS.REJECTED) && 
-                   order.status !== ORDER_STATUS.DISPUTED && (
-                    <button 
-                      className={styles.disputeBtn}
-                      onClick={() => setShowDispute(order.id)}
-                      title={t('dispute') || 'Оспорить'}
-                    >
-                      <Flag size={16} />
-                      <span>Оспорить</span>
-                    </button>
-                  )}
-                  
-                  {/* Pending status - just show waiting message */}
-                  {order.status === ORDER_STATUS.PENDING && (
-                    <span className={styles.waitingNote}>
-                      <Clock size={14} />
-                      Ожидание подтверждения продавцом
+                  <div className={styles.info}>
+                    <Link to={`/beat/${order.beatId}`} className={styles.beatTitle}>
+                      {order.beatTitle}
+                    </Link>
+                    <span className={styles.seller}>
+                      {t('by') || 'от'} {order.sellerName}
                     </span>
-                  )}
+                    <span className={styles.orderRef}>#{order.orderRef}</span>
+                  </div>
+
+                  <div className={styles.license}>
+                    <span className={styles.licenseType}>{order.licenseType}</span>
+                  </div>
+
+                  {/* Show price only for completed orders */}
+                  <div className={styles.meta}>
+                    {isDelivered ? (
+                      <span className={styles.price}>-${order.price?.toFixed(2)}</span>
+                    ) : isPending ? (
+                      <span className={styles.priceHidden}>Ожидание...</span>
+                    ) : isCancelled ? (
+                      <span className={styles.priceRefund}>Возврат</span>
+                    ) : (
+                      <span className={styles.price}>${order.price?.toFixed(2)}</span>
+                    )}
+                    <span className={styles.date}>{formatDate(order.createdAt)}</span>
+                  </div>
+
+                  <div className={styles.statusCol}>
+                    {isPending ? (
+                      <span className={`${styles.status} ${styles.pending}`}>
+                        <Clock size={14} />
+                        Ожидание подтверждения
+                      </span>
+                    ) : isDelivered ? (
+                      <span className={`${styles.status} ${styles.completed}`}>
+                        <CheckCircle size={14} />
+                        Завершено
+                      </span>
+                    ) : isCancelled ? (
+                      <span className={`${styles.status} ${styles.cancelled}`}>
+                        <XCircle size={14} />
+                        Отменено
+                      </span>
+                    ) : isDisputed ? (
+                      <span className={`${styles.status} ${styles.disputed}`}>
+                        <AlertTriangle size={14} />
+                        Спор открыт
+                      </span>
+                    ) : (
+                      <span className={`${styles.status} ${styles.pending}`}>
+                        <Clock size={14} />
+                        {order.status}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className={styles.actions}>
+                    {/* Pending: show countdown timer */}
+                    {isPending && (
+                      <CountdownTimer 
+                        createdAt={order.createdAt} 
+                        onExpired={handleTimerExpired}
+                        orderId={order.id}
+                      />
+                    )}
+
+                    {/* Delivered: show download button */}
+                    {isDelivered && order.beatFileUrl && (
+                      <a 
+                        href={getDownloadUrl(order.beatFileUrl, `${order.beatTitle}.${getFileExtension(order.licenseKey || order.licenseType)}`)}
+                        className={styles.downloadBtn}
+                        title="Скачать"
+                      >
+                        <Download size={18} />
+                        <span>Скачать {(order.licenseKey || order.licenseType || 'MP3').toUpperCase()}</span>
+                      </a>
+                    )}
+                    
+                    {/* Cancelled: show dispute button */}
+                    {isCancelled && !isDisputed && (
+                      <button 
+                        className={styles.disputeBtn}
+                        onClick={() => setShowDispute(order.id)}
+                      >
+                        <Flag size={16} />
+                        <span>Оспорить</span>
+                      </button>
+                    )}
+
+                    {/* Disputed: show status */}
+                    {isDisputed && (
+                      <span className={styles.disputedNote}>
+                        <AlertTriangle size={14} />
+                        Спор на рассмотрении
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         ) : (
           <div className={styles.emptyState}>
             <ShoppingBag size={48} />
-            <h3>{t('noPurchases')}</h3>
-            <p>{t('startBuying')}</p>
+            <h3>{t('noPurchases') || 'Нет покупок'}</h3>
+            <p>{t('startBuying') || 'Начните покупать биты'}</p>
             <Link to="/explore" className="btn btn-primary">
-              {t('exploreCatalog')}
+              {t('exploreCatalog') || 'Каталог'}
             </Link>
           </div>
         )}
@@ -287,12 +345,12 @@ export default function Purchases() {
         {showDispute && (
           <div className={styles.modalOverlay} onClick={() => setShowDispute(null)}>
             <div className={styles.modal} onClick={e => e.stopPropagation()}>
-              <h3 className={styles.modalTitle}>{t('reportProblem') || 'Открыть спор'}</h3>
-              <p className={styles.modalText}>{t('describeIssue') || 'Опишите проблему'}</p>
+              <h3 className={styles.modalTitle}>Открыть спор</h3>
+              <p className={styles.modalText}>Опишите проблему. Мы разберёмся в ситуации.</p>
               
               <textarea
                 className={styles.textarea}
-                placeholder={t('disputeReasonPlaceholder') || 'Опишите причину спора...'}
+                placeholder="Опишите причину спора..."
                 value={disputeReason}
                 onChange={e => setDisputeReason(e.target.value)}
                 rows={4}
@@ -306,14 +364,14 @@ export default function Purchases() {
                     setDisputeReason('')
                   }}
                 >
-                  {t('cancel') || 'Отмена'}
+                  Отмена
                 </button>
                 <button 
                   className="btn btn-primary"
                   onClick={() => handleDispute(showDispute)}
                   disabled={submitting || !disputeReason.trim()}
                 >
-                  {submitting ? <Loader2 size={16} className={styles.spinner} /> : (t('submitDispute') || 'Отправить')}
+                  {submitting ? <Loader2 size={16} className={styles.spinner} /> : 'Отправить'}
                 </button>
               </div>
             </div>

@@ -34,7 +34,7 @@
 
 .purchaseCard {
   display: grid;
-  grid-template-columns: 60px 1fr 100px 100px 100px 50px;
+  grid-template-columns: 60px 1fr 100px 100px 140px auto;
   align-items: center;
   gap: var(--space-md);
   padding: var(--space-md);
@@ -42,6 +42,11 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   transition: all var(--transition-fast);
+}
+
+.purchaseCard.pendingCard {
+  border-color: var(--warning);
+  background: rgba(245, 158, 11, 0.03);
 }
 
 .purchaseCard:hover {
@@ -124,6 +129,18 @@
 
 .price {
   font-weight: 600;
+}
+
+.priceHidden {
+  font-size: var(--font-sm);
+  color: var(--warning);
+  font-style: italic;
+}
+
+.priceRefund {
+  font-size: var(--font-sm);
+  color: var(--success);
+  font-weight: 500;
 }
 
 .date {
@@ -239,6 +256,27 @@
   gap: var(--space-xs);
   font-size: var(--font-sm);
   color: var(--text-secondary);
+}
+
+.countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.disputedNote {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-sm);
+  color: var(--error);
 }
 
 .reportBtn {
