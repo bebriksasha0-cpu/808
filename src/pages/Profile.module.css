@@ -354,7 +354,12 @@
   color: var(--error);
 }
 
-.statusRejected, .statusCancelled {
+.statusRejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+}
+
+.statusCancelled {
   background: rgba(239, 68, 68, 0.1);
   color: var(--error);
 }
@@ -391,13 +396,14 @@
 
 .purchasePriceFinal {
   font-weight: 600;
+  font-size: var(--font-md);
   color: var(--error);
 }
 
 .refundNote {
   font-size: var(--font-sm);
   color: var(--warning);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .disputeBtn {
@@ -461,13 +467,23 @@
   gap: var(--space-md);
 }
 
+.saleHeader .beatInfo {
+  flex: 1;
+}
+
+.saleHeader .saleStatus {
+  flex-shrink: 0;
+}
+
 .saleActions {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  justify-content: flex-start;
+  gap: var(--space-md);
   margin-top: var(--space-md);
   padding-top: var(--space-md);
   border-top: 1px solid var(--border);
+  min-height: 48px;
   flex-wrap: wrap;
   min-height: 44px;
 }
