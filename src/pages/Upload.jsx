@@ -7,6 +7,7 @@ import { uploadToCloudinary } from '../config/cloudinary'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { styles as beatStyles } from '../data/beats'
+import { analyzeAudio } from '../utils/audioAnalyzer'
 import styles from './Upload.module.css'
 
 export default function Upload() {
@@ -44,6 +45,7 @@ export default function Upload() {
   
   const [error, setError] = useState('')
   const [isUploading, setIsUploading] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadStatus, setUploadStatus] = useState('')
   const [coverFile, setCoverFile] = useState(null)
@@ -105,7 +107,7 @@ export default function Upload() {
   }
 
   // Handle file selection for specific license
-  const handleLicenseFileChange = (e, type) => {
+  const handleLicenseFileChange = async (e, type) => {
     if (!e.target.files || !e.target.files[0]) return
     
     const file = e.target.files[0]
@@ -117,6 +119,21 @@ export default function Upload() {
           return
         }
         setMp3File(file)
+        
+        // Analyze audio for BPM and Key
+        setIsAnalyzing(true)
+        try {
+          const analysis = await analyzeAudio(file)
+          if (analysis.bpm) {
+            setFormData(prev => ({ ...prev, bpm: String(analysis.bpm) }))
+          }
+          if (analysis.key) {
+            setFormData(prev => ({ ...prev, key: analysis.key }))
+          }
+        } catch (err) {
+          console.error('Audio analysis failed:', err)
+        }
+        setIsAnalyzing(false)
         break
       case 'wav':
         if (!validateFileType(file, ['wav'])) {
@@ -531,7 +548,10 @@ export default function Upload() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label className={styles.label}>{t('bpm')} *</label>
+                <label className={styles.label}>
+                  {t('bpm')} *
+                  {isAnalyzing && <span className={styles.analyzingBadge}><Loader2 size={12} className={styles.spinnerSmall} /> {t('analyzing') || 'Analyzing...'}</span>}
+                </label>
                 <input 
                   type="number"
                   className="input"
@@ -543,20 +563,44 @@ export default function Upload() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label className={styles.label}>Key</label>
+                <label className={styles.label}>
+                  Key
+                  {isAnalyzing && <span className={styles.analyzingBadge}><Loader2 size={12} className={styles.spinnerSmall} /> {t('analyzing') || 'Analyzing...'}</span>}
+                </label>
                 <select 
                   className="input"
                   value={formData.key}
                   onChange={e => setFormData({...formData, key: e.target.value})}
                 >
                   <option value="">{t('selectKey')}</option>
-                  <option value="Am">Am</option>
-                  <option value="Bm">Bm</option>
-                  <option value="Cm">Cm</option>
-                  <option value="Dm">Dm</option>
-                  <option value="Em">Em</option>
-                  <option value="Fm">Fm</option>
-                  <option value="Gm">Gm</option>
+                  <optgroup label="Minor">
+                    <option value="A Minor">Am</option>
+                    <option value="A# Minor">A#m</option>
+                    <option value="B Minor">Bm</option>
+                    <option value="C Minor">Cm</option>
+                    <option value="C# Minor">C#m</option>
+                    <option value="D Minor">Dm</option>
+                    <option value="D# Minor">D#m</option>
+                    <option value="E Minor">Em</option>
+                    <option value="F Minor">Fm</option>
+                    <option value="F# Minor">F#m</option>
+                    <option value="G Minor">Gm</option>
+                    <option value="G# Minor">G#m</option>
+                  </optgroup>
+                  <optgroup label="Major">
+                    <option value="A Major">A</option>
+                    <option value="A# Major">A#</option>
+                    <option value="B Major">B</option>
+                    <option value="C Major">C</option>
+                    <option value="C# Major">C#</option>
+                    <option value="D Major">D</option>
+                    <option value="D# Major">D#</option>
+                    <option value="E Major">E</option>
+                    <option value="F Major">F</option>
+                    <option value="F# Major">F#</option>
+                    <option value="G Major">G</option>
+                    <option value="G# Major">G#</option>
+                  </optgroup>
                 </select>
               </div>
             </div>
