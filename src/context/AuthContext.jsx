@@ -11,10 +11,28 @@ import {
   linkWithCredential,
   reload
 } from 'firebase/auth'
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore'
 import { auth, db } from '../config/firebase'
 
 const AuthContext = createContext()
+
+// Check if username is taken
+const isUsernameTaken = async (name, excludeUserId = null) => {
+  const normalizedName = name.trim().toLowerCase()
+  if (!normalizedName) return false
+  
+  const usersQuery = query(collection(db, 'users'))
+  const snapshot = await getDocs(usersQuery)
+  
+  for (const doc of snapshot.docs) {
+    if (excludeUserId && doc.id === excludeUserId) continue
+    const userData = doc.data()
+    if (userData.name?.toLowerCase() === normalizedName) {
+      return true
+    }
+  }
+  return false
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -134,6 +152,12 @@ export function AuthProvider({ children }) {
   const register = async ({ email, password, name }) => {
     try {
       setError(null)
+      
+      // Check if username is taken
+      if (name && await isUsernameTaken(name)) {
+        return { success: false, error: 'This username is already taken' }
+      }
+      
       const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, password)
       
       // Send verification email
@@ -272,6 +296,11 @@ export function AuthProvider({ children }) {
       
       // Check if trying to change name
       if (name && name !== user.name) {
+        // Check if username is taken
+        if (await isUsernameTaken(name, user.id)) {
+          return { success: false, error: 'This username is already taken' }
+        }
+        
         if (user.lastNameChange) {
           const lastChange = new Date(user.lastNameChange.seconds ? user.lastNameChange.seconds * 1000 : user.lastNameChange)
           const daysSinceChange = (now - lastChange) / (1000 * 60 * 60 * 24)
