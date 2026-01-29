@@ -97,19 +97,19 @@
   }
   
   .actions .btn {
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: 8px 14px;
+    font-size: 13px;
   }
 }
 
 @media (max-width: 380px) {
   .avatar {
-    width: 56px;
-    height: 56px;
+    width: 64px;
+    height: 64px;
   }
   
   .name {
-    font-size: 16px;
+    font-size: 18px;
   }
 }
 
@@ -249,13 +249,13 @@
 
 @media (max-width: 380px) {
   .tabs {
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: 12px;
+    margin-bottom: 14px;
   }
   
   .tab {
-    font-size: 11px;
-    padding: 8px 0;
+    font-size: 13px;
+    padding: 10px 0;
   }
 }
 

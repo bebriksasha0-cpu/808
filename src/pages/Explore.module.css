@@ -335,29 +335,34 @@
   }
   
   .likeBtn {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
   }
 }
 
 @media (max-width: 380px) {
   .beatRow {
-    grid-template-columns: 28px 1fr 50px;
-    gap: 6px;
-    padding: 6px 2px;
+    grid-template-columns: 36px 1fr 55px;
+    gap: 8px;
+    padding: 8px 4px;
   }
   
   .beatCover {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
   }
   
   .beatTitle {
-    font-size: 12px;
+    font-size: 14px;
   }
   
   .beatPrice {
-    font-size: 12px;
+    font-size: 14px;
+  }
+  
+  .playBtn {
+    width: 36px;
+    height: 36px;
   }
 }
 
