@@ -2,7 +2,10 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react({
+    // Disable Fast Refresh to avoid CSP eval issues in Safari
+    fastRefresh: false
+  })],
   build: {
     chunkSizeWarningLimit: 2000,
     rollupOptions: {
