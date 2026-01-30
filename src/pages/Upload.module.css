@@ -627,37 +627,6 @@
   to { transform: rotate(360deg); }
 }
 
-/* Analyze Button */
-.analyzeBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-weight: 500;
-  font-size: var(--font-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
-  margin-bottom: var(--space-md);
-}
-
-.analyzeBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
-}
-
-.analyzeBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
 /* Styles Multi-Select */
 .stylesGrid {
   display: flex;

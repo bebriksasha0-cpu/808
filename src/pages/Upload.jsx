@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, Navigate, Link } from 'react-router-dom'
-import { Upload as UploadIcon, Music, X, AlertCircle, Loader2, Image, FileAudio, Archive, Check, Send, Plus, Wand2 } from 'lucide-react'
+import { Upload as UploadIcon, Music, X, AlertCircle, Loader2, Image, FileAudio, Archive, Check, Send, Plus } from 'lucide-react'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { uploadToCloudinary } from '../config/cloudinary'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { styles as beatStyles } from '../data/beats'
-import { analyzeAudio } from '../utils/audioAnalyzer'
 import styles from './Upload.module.css'
 
 export default function Upload() {
@@ -45,7 +44,6 @@ export default function Upload() {
   
   const [error, setError] = useState('')
   const [isUploading, setIsUploading] = useState(false)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadStatus, setUploadStatus] = useState('')
   const [coverFile, setCoverFile] = useState(null)
@@ -104,38 +102,6 @@ export default function Upload() {
     if (!file) return false
     const extension = file.name.split('.').pop().toLowerCase()
     return allowedExtensions.includes(extension)
-  }
-
-  // Analyze MP3 for BPM and Key
-  const handleAnalyzeAudio = async () => {
-    if (!mp3File) {
-      setError(t('uploadMp3First') || 'Upload MP3 file first')
-      return
-    }
-    
-    setIsAnalyzing(true)
-    setError('')
-    try {
-      const analysis = await analyzeAudio(mp3File)
-      
-      let updated = false
-      if (analysis.bpm) {
-        setFormData(prev => ({ ...prev, bpm: String(analysis.bpm) }))
-        updated = true
-      }
-      if (analysis.key) {
-        setFormData(prev => ({ ...prev, key: analysis.key }))
-        updated = true
-      }
-      
-      if (!updated) {
-        setError(t('analysisNoResult') || 'Could not detect BPM/Key. Try entering manually.')
-      }
-    } catch (err) {
-      console.error('Audio analysis failed:', err)
-      setError(t('analysisError') || 'Failed to analyze audio')
-    }
-    setIsAnalyzing(false)
   }
 
   // Handle file selection for specific license
@@ -615,26 +581,6 @@ export default function Upload() {
                 </select>
               </div>
             </div>
-
-            {/* Auto-detect BPM & Key Button */}
-            <button
-              type="button"
-              className={styles.analyzeBtn}
-              onClick={handleAnalyzeAudio}
-              disabled={!mp3File || isAnalyzing}
-            >
-              {isAnalyzing ? (
-                <>
-                  <Loader2 size={18} className={styles.spinnerSmall} />
-                  {t('analyzing') || 'Analyzing...'}
-                </>
-              ) : (
-                <>
-                  <Wand2 size={18} />
-                  {t('detectBpmKey') || 'Detect BPM & Key'}
-                </>
-              )}
-            </button>
 
             {/* Styles Multi-Select */}
             <div className={styles.inputGroup}>
