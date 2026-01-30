@@ -35,9 +35,9 @@ export default function Header() {
         </nav>
 
         <div className={styles.actions}>
-          <div className={styles.userCount}>
+          <div className={styles.userCount} title="Registered users">
             <Users size={16} />
-            <span>{userCount.toLocaleString()}</span>
+            <span>{userCount.toLocaleString()} users</span>
           </div>
           
           <CountrySelector />
@@ -77,7 +77,7 @@ export default function Header() {
 
         {/* Mobile Menu */}
         <div className={styles.mobileActions}>
-          <div className={styles.userCount}>
+          <div className={styles.userCount} title="Registered users">
             <Users size={14} />
             <span>{userCount.toLocaleString()}</span>
           </div>
