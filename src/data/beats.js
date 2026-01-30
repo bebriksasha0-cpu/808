@@ -20,7 +20,7 @@ export const styles = [
   'Angelcore',
   'Sigilkore',
   'Industrial Trap',
-  'Milan Core',
+  'Mylancore',
   'Slavic Wave',
   'Voidcore',
   'HexD'
