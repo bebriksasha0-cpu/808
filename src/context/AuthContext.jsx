@@ -72,7 +72,9 @@ export function AuthProvider({ children }) {
               email: firebaseUser.email,
               avatar: firebaseUser.photoURL || null,
               createdAt: serverTimestamp(),
-              lastNameChange: null
+              lastNameChange: null,
+              lastSeen: serverTimestamp(),
+              isOnline: true
             }
             await setDoc(doc(db, 'users', firebaseUser.uid), userData)
             setUser({
@@ -114,7 +116,8 @@ export function AuthProvider({ children }) {
       }
     }
 
-    // Update every 2 minutes
+    // Update immediately and every 2 minutes
+    updateLastSeen()
     const interval = setInterval(updateLastSeen, 2 * 60 * 1000)
 
     // Update on visibility change
