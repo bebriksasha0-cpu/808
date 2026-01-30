@@ -1,7 +1,7 @@
 /**
- * Audio analyzer using Meyda library for BPM and Key detection
+ * Audio analyzer using web-audio-beat-detector for accurate BPM detection
  */
-import Meyda from 'meyda'
+import { guess } from 'web-audio-beat-detector'
 
 // Musical notes
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
@@ -12,195 +12,126 @@ const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 
  * @returns {Promise<{bpm: number, key: string}>}
  */
 export async function analyzeAudio(file) {
-  return new Promise((resolve) => {
-    const reader = new FileReader()
-    
-    reader.onload = async (e) => {
-      try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-        
-        if (audioContext.state === 'suspended') {
-          await audioContext.resume()
-        }
-        
-        const arrayBuffer = e.target.result
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-        
-        const channelData = audioBuffer.getChannelData(0)
-        const sampleRate = audioBuffer.sampleRate
-        
-        console.log('Analyzing:', { duration: audioBuffer.duration, sampleRate })
-        
-        // Detect BPM using onset detection
-        const bpm = detectBPM(channelData, sampleRate)
-        
-        // Detect Key using chroma analysis with Meyda
-        const key = detectKeyWithMeyda(channelData, sampleRate, audioContext)
-        
-        audioContext.close()
-        
-        console.log('Results:', { bpm, key })
-        resolve({ bpm, key })
-      } catch (err) {
-        console.error('Analysis error:', err)
-        resolve({ bpm: 120, key: 'A Minor' })
-      }
-    }
-    
-    reader.onerror = () => resolve({ bpm: 120, key: 'A Minor' })
-    reader.readAsArrayBuffer(file)
-  })
-}
-
-/**
- * Detect BPM using energy onset detection
- */
-function detectBPM(channelData, sampleRate) {
   try {
-    const maxSamples = Math.min(channelData.length, sampleRate * 30)
-    const hopSize = Math.floor(sampleRate / 100)
-    const energyValues = []
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
     
-    // Calculate energy for each frame
-    for (let i = 0; i < maxSamples - hopSize; i += hopSize) {
-      let energy = 0
-      for (let j = 0; j < hopSize; j++) {
-        energy += channelData[i + j] * channelData[i + j]
-      }
-      energyValues.push(Math.sqrt(energy / hopSize))
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume()
     }
     
-    if (energyValues.length < 100) return 120
+    // Read file as ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer()
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
     
-    // Calculate onset strength (energy difference)
-    const onsets = []
-    for (let i = 1; i < energyValues.length; i++) {
-      const diff = energyValues[i] - energyValues[i - 1]
-      onsets.push(diff > 0 ? diff : 0)
-    }
-    
-    // Threshold for peak detection
-    const avgOnset = onsets.reduce((a, b) => a + b, 0) / onsets.length
-    const stdOnset = Math.sqrt(onsets.reduce((a, b) => a + (b - avgOnset) ** 2, 0) / onsets.length)
-    const threshold = avgOnset + stdOnset * 0.5
-    
-    // Find beats
-    const beatTimes = []
-    const minGap = 12 // ~120ms minimum between beats
-    
-    for (let i = 2; i < onsets.length - 2; i++) {
-      if (onsets[i] > threshold && 
-          onsets[i] > onsets[i - 1] && 
-          onsets[i] > onsets[i - 2] &&
-          onsets[i] >= onsets[i + 1] &&
-          onsets[i] >= onsets[i + 2]) {
-        if (beatTimes.length === 0 || i - beatTimes[beatTimes.length - 1] >= minGap) {
-          beatTimes.push(i)
-        }
-      }
-    }
-    
-    if (beatTimes.length < 8) return 120
-    
-    // Calculate intervals and find BPM
-    const intervals = []
-    for (let i = 1; i < beatTimes.length; i++) {
-      intervals.push(beatTimes[i] - beatTimes[i - 1])
-    }
-    
-    // Use histogram to find most common interval
-    const histogram = {}
-    intervals.forEach(interval => {
-      const bin = Math.round(interval)
-      histogram[bin] = (histogram[bin] || 0) + 1
+    console.log('Analyzing:', { 
+      duration: audioBuffer.duration, 
+      sampleRate: audioBuffer.sampleRate 
     })
     
-    let bestInterval = intervals[Math.floor(intervals.length / 2)]
-    let maxCount = 0
-    for (const [interval, count] of Object.entries(histogram)) {
-      if (count > maxCount) {
-        maxCount = count
-        bestInterval = parseInt(interval)
-      }
+    // Detect BPM using web-audio-beat-detector
+    let bpm = null
+    try {
+      const result = await guess(audioBuffer)
+      bpm = Math.round(result.bpm)
+      console.log('BPM detected:', bpm, 'offset:', result.offset)
+    } catch (bpmErr) {
+      console.error('BPM detection failed:', bpmErr)
+      bpm = 120
     }
     
-    // Convert to BPM (100 frames per second)
-    let bpm = Math.round(6000 / bestInterval)
+    // Detect Key using FFT chroma analysis
+    const key = detectKey(audioBuffer)
+    console.log('Key detected:', key)
     
-    // Normalize to reasonable range
-    while (bpm < 70) bpm *= 2
-    while (bpm > 180) bpm /= 2
+    audioContext.close()
     
-    return bpm
+    return { bpm, key }
   } catch (err) {
-    console.error('BPM error:', err)
-    return 120
+    console.error('Analysis error:', err)
+    return { bpm: 120, key: 'A Minor' }
   }
 }
 
 /**
- * Detect key using Meyda chroma features
+ * Detect musical key using FFT-based chroma analysis
  */
-function detectKeyWithMeyda(channelData, sampleRate) {
+function detectKey(audioBuffer) {
   try {
-    const bufferSize = 4096
-    const hopSize = 2048
+    const channelData = audioBuffer.getChannelData(0)
+    const sampleRate = audioBuffer.sampleRate
     
-    // Use middle 20 seconds of track
-    const analysisLength = Math.min(channelData.length, sampleRate * 20)
-    const startOffset = Math.floor((channelData.length - analysisLength) / 2)
+    // Use 20 seconds from middle of track
+    const analysisDuration = Math.min(20, audioBuffer.duration)
+    const analysisStart = Math.floor((audioBuffer.duration - analysisDuration) / 2)
+    const startSample = Math.floor(analysisStart * sampleRate)
+    const numSamples = Math.floor(analysisDuration * sampleRate)
     
-    // Accumulate chroma
-    const chromaSum = new Array(12).fill(0)
+    // FFT parameters
+    const fftSize = 8192
+    const hopSize = 4096
+    
+    // Chroma bins (12 pitch classes)
+    const chroma = new Array(12).fill(0)
     let frameCount = 0
     
-    // Set up Meyda
-    Meyda.bufferSize = bufferSize
-    Meyda.sampleRate = sampleRate
-    
     // Process frames
-    for (let i = startOffset; i < startOffset + analysisLength - bufferSize; i += hopSize) {
-      const frame = channelData.slice(i, i + bufferSize)
-      
-      try {
-        const features = Meyda.extract(['chroma'], frame)
-        if (features && features.chroma) {
-          for (let j = 0; j < 12; j++) {
-            chromaSum[j] += features.chroma[j]
-          }
-          frameCount++
-        }
-      } catch (e) {
-        // Skip frame on error
+    for (let i = startSample; i < startSample + numSamples - fftSize; i += hopSize) {
+      // Extract frame with Hann window
+      const frame = new Float32Array(fftSize)
+      for (let j = 0; j < fftSize; j++) {
+        const window = 0.5 * (1 - Math.cos(2 * Math.PI * j / fftSize))
+        frame[j] = (channelData[i + j] || 0) * window
       }
+      
+      // Simple FFT magnitude estimation using autocorrelation
+      // Map detected pitches to chroma
+      const pitches = detectPitchesInFrame(frame, sampleRate)
+      
+      for (const pitch of pitches) {
+        if (pitch > 60 && pitch < 2000) {
+          // Convert frequency to MIDI note, then to chroma bin
+          const midiNote = 12 * Math.log2(pitch / 440) + 69
+          const chromaBin = Math.round(midiNote) % 12
+          if (chromaBin >= 0 && chromaBin < 12) {
+            chroma[chromaBin]++
+          }
+        }
+      }
+      frameCount++
     }
     
     if (frameCount === 0) return 'A Minor'
     
-    // Normalize
-    const chroma = chromaSum.map(c => c / frameCount)
+    // Normalize chroma
+    const maxChroma = Math.max(...chroma)
+    if (maxChroma === 0) return 'A Minor'
     
-    // Key profiles (Krumhansl-Schmuckler)
+    const normalizedChroma = chroma.map(c => c / maxChroma)
+    
+    // Krumhansl-Schmuckler key profiles
     const majorProfile = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88]
     const minorProfile = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17]
     
     let bestKey = 'A Minor'
-    let bestCorr = -Infinity
+    let bestScore = -Infinity
     
     for (let root = 0; root < 12; root++) {
-      // Rotate chroma
-      const rotated = [...chroma.slice(12 - root), ...chroma.slice(0, 12 - root)]
+      // Rotate chroma to align with root
+      const rotatedChroma = []
+      for (let i = 0; i < 12; i++) {
+        rotatedChroma.push(normalizedChroma[(i + root) % 12])
+      }
       
-      // Correlate with profiles
-      const corrMajor = correlation(rotated, majorProfile)
-      const corrMinor = correlation(rotated, minorProfile)
+      // Calculate correlation with major and minor profiles
+      const majorScore = pearsonCorrelation(rotatedChroma, majorProfile)
+      const minorScore = pearsonCorrelation(rotatedChroma, minorProfile)
       
-      if (corrMajor > bestCorr) {
-        bestCorr = corrMajor
+      if (majorScore > bestScore) {
+        bestScore = majorScore
         bestKey = `${NOTE_NAMES[root]} Major`
       }
-      if (corrMinor > bestCorr) {
-        bestCorr = corrMinor
+      if (minorScore > bestScore) {
+        bestScore = minorScore
         bestKey = `${NOTE_NAMES[root]} Minor`
       }
     }
@@ -213,22 +144,55 @@ function detectKeyWithMeyda(channelData, sampleRate) {
 }
 
 /**
- * Pearson correlation coefficient
+ * Detect dominant pitches in a frame using autocorrelation
  */
-function correlation(a, b) {
-  const n = a.length
-  let sumA = 0, sumB = 0, sumAB = 0, sumA2 = 0, sumB2 = 0
+function detectPitchesInFrame(frame, sampleRate) {
+  const pitches = []
   
-  for (let i = 0; i < n; i++) {
-    sumA += a[i]
-    sumB += b[i]
-    sumAB += a[i] * b[i]
-    sumA2 += a[i] * a[i]
-    sumB2 += b[i] * b[i]
+  // Autocorrelation for pitch detection
+  const minLag = Math.floor(sampleRate / 1000) // 1000 Hz max
+  const maxLag = Math.floor(sampleRate / 80)   // 80 Hz min
+  
+  const correlations = []
+  
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    let correlation = 0
+    for (let i = 0; i < frame.length - lag; i++) {
+      correlation += frame[i] * frame[i + lag]
+    }
+    correlations.push({ lag, correlation })
   }
   
-  const num = n * sumAB - sumA * sumB
-  const den = Math.sqrt((n * sumA2 - sumA * sumA) * (n * sumB2 - sumB * sumB))
+  // Find peaks in autocorrelation
+  for (let i = 1; i < correlations.length - 1; i++) {
+    if (correlations[i].correlation > correlations[i - 1].correlation &&
+        correlations[i].correlation > correlations[i + 1].correlation &&
+        correlations[i].correlation > 0) {
+      const freq = sampleRate / correlations[i].lag
+      pitches.push(freq)
+    }
+  }
   
-  return den === 0 ? 0 : num / den
+  return pitches.slice(0, 3) // Return top 3 pitches
+}
+
+/**
+ * Pearson correlation coefficient
+ */
+function pearsonCorrelation(x, y) {
+  const n = x.length
+  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0
+  
+  for (let i = 0; i < n; i++) {
+    sumX += x[i]
+    sumY += y[i]
+    sumXY += x[i] * y[i]
+    sumX2 += x[i] * x[i]
+    sumY2 += y[i] * y[i]
+  }
+  
+  const numerator = n * sumXY - sumX * sumY
+  const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY))
+  
+  return denominator === 0 ? 0 : numerator / denominator
 }
