@@ -83,6 +83,23 @@
   background: rgba(99, 102, 241, 0.2);
 }
 
+.userCount {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.userCount svg {
+  color: var(--accent);
+}
+
 .mobileActions {
   display: none;
 }

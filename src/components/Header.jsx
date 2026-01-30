@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Sun, Moon, User, Upload, Shield } from 'lucide-react'
+import { Sun, Moon, User, Upload, Shield, Users } from 'lucide-react'
+import { collection, onSnapshot } from 'firebase/firestore'
+import { db } from '../config/firebase'
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
@@ -11,6 +14,15 @@ export default function Header() {
   const { user } = useAuth()
   const { t } = useLanguage()
   const location = useLocation()
+  const [userCount, setUserCount] = useState(0)
+
+  // Real-time user count listener
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
+      setUserCount(snapshot.size)
+    })
+    return () => unsubscribe()
+  }, [])
 
   return (
     <header className={styles.header}>
@@ -23,6 +35,11 @@ export default function Header() {
         </nav>
 
         <div className={styles.actions}>
+          <div className={styles.userCount}>
+            <Users size={16} />
+            <span>{userCount.toLocaleString()}</span>
+          </div>
+          
           <CountrySelector />
           
           <button 
@@ -60,6 +77,11 @@ export default function Header() {
 
         {/* Mobile Menu */}
         <div className={styles.mobileActions}>
+          <div className={styles.userCount}>
+            <Users size={14} />
+            <span>{userCount.toLocaleString()}</span>
+          </div>
+          
           <CountrySelector />
           
           <button 
